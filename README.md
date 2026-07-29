@@ -222,6 +222,19 @@ usually a parser that failed to compile (`:checkhealth nvim-treesitter`).
 - **Debug adapters (nvim-dap) are not installed** by choice. `<leader>d` is
   reserved for them and `<leader>rd` in Rust is already wired; see
   [docs/ADDING-A-LANGUAGE.md](docs/ADDING-A-LANGUAGE.md) for adding it.
+  `:checkhealth rustaceanvim` reports one warning about this — expected.
+- **`:checkhealth snacks` reports errors for optional image converters.** All are
+  safe to ignore unless you want that specific format; images themselves work.
+
+  | Reported missing | Only needed for | Install if you want it |
+  |---|---|---|
+  | `gs` (ghostscript) | rendering PDFs inline | `winget install ArtifexSoftware.GhostScript` / `apt install ghostscript` |
+  | `pdflatex` / `tectonic` | rendering LaTeX math in markdown | a TeX distribution |
+  | `mmdc` | rendering Mermaid diagrams | `npm i -g @mermaid-js/mermaid-cli` |
+  | kitty graphics protocol | — | reported only when run headless; WezTerm supports it |
+
+  To silence the LaTeX one, set `math = { enabled = false }` in the `image` block of
+  `nvim/lua/plugins/snacks.lua`.
 
 ## Alternatives, if you disagree with a choice
 

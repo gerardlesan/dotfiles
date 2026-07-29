@@ -415,6 +415,30 @@ return {
           -- Route Neovim's own `vim.print` (used by `:=expr`) through it too.
           vim.print = _G.dd
 
+          -- ══ Force the vim.ui overrides ═══════════════════════════════════
+          -- `input.enabled = true` and `picker.ui_select = true` above are the
+          -- documented way to ask snacks to replace vim.ui.input and
+          -- vim.ui.select. But snacks installs each override inside that
+          -- module's own setup(), which it defers until the module is first
+          -- accessed — so until something happens to touch the picker,
+          -- vim.ui.select is still Neovim's built-in.
+          --
+          -- That matters because vim.ui.select is what LSP code actions
+          -- (<leader>ca) go through: without the override you get a numbered
+          -- list on the command line instead of the picker. Confirmed by
+          -- `:checkhealth snacks`, which reports it as an error.
+          --
+          -- Assigning through a closure rather than binding the function
+          -- directly means snacks can still swap its own implementation later
+          -- (its toggle/disable path reassigns these) without this line
+          -- pinning a stale reference.
+          vim.ui.select = function(...)
+            return Snacks.picker.select(...)
+          end
+          vim.ui.input = function(...)
+            return Snacks.input.input(...)
+          end
+
           -- ══ UI TOGGLES (<leader>u) ═══════════════════════════════════════
           -- Snacks.toggle registers each of these with which-key *including its
           -- current state*, so the <leader>u popup shows a filled or hollow icon
