@@ -63,7 +63,23 @@ filetype-specific commands.
 | `]<Space>` `[<Space>` | insert a blank line below/above |
 | `gc` `gcc` | comment (built into Neovim 0.10+, made embedded-language-aware) |
 | `gsa` `gsd` `gsr` | surround add / delete / replace — `gs` because flash owns `s` |
-| `<C-space>` | start incremental treesitter selection |
+
+### Incremental selection — grow a selection along the syntax tree
+
+| Key | Mode | Action |
+|---|---|---|
+| `<C-space>` | normal | select the node under the cursor |
+| `<C-space>` | visual | grow to the parent node — press repeatedly |
+| `<BS>` | visual | step back down to the previous, smaller node |
+| `<A-space>` | visual | jump straight out to the enclosing multi-line construct |
+
+From inside the string in `map.insert(String::from("a"), vec![1, 2, 3])`, repeated
+`<C-space>` gives you `"a"` → `String::from("a")` → the argument list → the whole
+call → the statement. Beats counting characters or nudging with `w`.
+
+> The upstream `nvim-treesitter.incremental_selection` module was **deleted** in the
+> `main`-branch rewrite, so every tutorial that configures it now errors with
+> "module not found". This is a local reimplementation in `lua/util/incsel.lua`.
 
 ### Text objects
 
@@ -167,6 +183,12 @@ changed files · `go` open on GitHub/GitLab · `gv` diffview (working tree) ·
 `ghb` blame line · `ghB` blame file · `ghd` diff vs index · `ghD` diff vs last commit.
 In visual mode `ghs`/`ghr` act on the selected lines only — this replaces `git add -p`.
 
+> **Inline blame is OFF.** The always-on virtual text at end of line changed on every
+> cursor move, which is a constant distraction while writing code. The information is
+> one key away and in better form: `<leader>ghb` (float, full commit message),
+> `<leader>ghB` (whole file), `<leader>gL` (every commit that touched this line), or
+> `<leader>gtb` to switch the inline version back on for the session.
+
 **`<leader>gt` — git toggles:** `gtb` inline blame · `gtd` deleted lines · `gtw` word diff
 
 ### `<leader>c` — Code / LSP
@@ -193,8 +215,8 @@ Each shows its current on/off state in the which-key panel.
 `uw` wrap · `us` spelling · `ul` line numbers · `uL` relative numbers ·
 `uc` conceal · `ub` dark/light · `uu` cursor column · `ud` diagnostic virtual
 **lines** (better for long Rust errors) · `uD` diagnostics on/off · `uh` inlay
-hints · `ug` indent guides · `uT` treesitter highlight · `ut` sticky context ·
-`uS` smooth scroll · `uA` dim inactive · `um` markdown rendering ·
+hints · `ug` indent guides · `ur` rainbow delimiters · `uT` treesitter highlight ·
+`ut` sticky context · `uS` smooth scroll · `uA` dim inactive · `um` markdown rendering ·
 **`uf` format-on-save (buffer)** · **`uF` format-on-save (global)** ·
 `un` dismiss notifications · `uN` message history ·
 `ui` inspect highlight groups · `uI` treesitter tree · `uq` edit query ·

@@ -114,12 +114,12 @@ g.maplocalleader = "\\"
 -- If you ever install a plugin that genuinely needs one, set it back to 1 (or
 -- just delete the line) and point the matching `*_host_prog` at the interpreter.
 g.loaded_python3_provider = 0 -- pynvim. Note: this does NOT affect Python LSP,
-                             -- formatting, or neotest-python — those run Python
-                             -- as an ordinary subprocess, not as a provider.
+-- formatting, or neotest-python — those run Python
+-- as an ordinary subprocess, not as a provider.
 g.loaded_ruby_provider = 0
 g.loaded_perl_provider = 0
-g.loaded_node_provider = 0    -- neovim npm package. Does NOT affect the
-                              -- TypeScript language server.
+g.loaded_node_provider = 0 -- neovim npm package. Does NOT affect the
+-- TypeScript language server.
 
 -- ── Classified but not enabled ──────────────────────────────────────────────
 -- Point a provider at a specific interpreter instead of letting Neovim search.
@@ -821,7 +821,13 @@ opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 
 -- [window] Empty string = let Neovim render the folded line with its normal
 -- syntax highlighting, instead of the old monochrome "+--  12 lines: ---".
--- Neovim 0.10+. Much nicer, and free. (default: "foldtext()")
+-- Neovim 0.10+. (default: "foldtext()")
+--
+-- NOTE: this is the FALLBACK. lua/plugins/treesitter.lua replaces it at startup
+-- with lua/util/folds.lua, which keeps the treesitter highlighting *and* appends
+-- a "⋯ N lines" count — the one thing a closed fold most needs to tell you, and
+-- the one thing the empty-string form drops. Set `folds.custom_foldtext = false`
+-- in the options table at the top of lua/plugins/treesitter.lua to come back here.
 opt.foldtext = ""
 
 -- [window] Open all folds when a file loads. 99 effectively means "never fold on
@@ -1560,10 +1566,25 @@ opt.wildignorecase = true
 -- [global] Never offer these in file completion. Keeps build output and vendored
 -- dependencies out of `:e` and `:find`.
 opt.wildignore = {
-  "*.o", "*.obj", "*.dll", "*.exe", "*.so", "*.dylib", "*.pyc", "*.pyo",
-  "*/node_modules/*", "*/target/*", "*/__pycache__/*", "*/.git/*",
-  "*/.venv/*", "*/venv/*", "*/dist/*", "*/build/*", "*/.mypy_cache/*",
-  "*/.pytest_cache/*", "*/.ruff_cache/*",
+  "*.o",
+  "*.obj",
+  "*.dll",
+  "*.exe",
+  "*.so",
+  "*.dylib",
+  "*.pyc",
+  "*.pyo",
+  "*/node_modules/*",
+  "*/target/*",
+  "*/__pycache__/*",
+  "*/.git/*",
+  "*/.venv/*",
+  "*/venv/*",
+  "*/dist/*",
+  "*/build/*",
+  "*/.mypy_cache/*",
+  "*/.pytest_cache/*",
+  "*/.ruff_cache/*",
 }
 
 -- [global] Characters that separate items when completing a `:set foo=` value.

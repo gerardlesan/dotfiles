@@ -63,37 +63,63 @@ return {
 
             -- Run or test whatever is under the cursor. rustaceanvim figures out
             -- the correct `cargo run --bin x` / `cargo test path::to::test`.
-            map("<leader>rr", function() vim.cmd.RustLsp("runnables") end, "Runnables")
-            map("<leader>rR", function() vim.cmd.RustLsp({ "runnables", bang = true }) end, "Re-run last runnable")
-            map("<leader>rd", function() vim.cmd.RustLsp("debuggables") end, "Debuggables (needs nvim-dap)")
+            map("<leader>rr", function()
+              vim.cmd.RustLsp("runnables")
+            end, "Runnables")
+            map("<leader>rR", function()
+              vim.cmd.RustLsp({ "runnables", bang = true })
+            end, "Re-run last runnable")
+            map("<leader>rd", function()
+              vim.cmd.RustLsp("debuggables")
+            end, "Debuggables (needs nvim-dap)")
 
             -- See what a macro expands to. Invaluable with derive macros, and the
             -- single feature people miss most when moving from an IDE.
-            map("<leader>rm", function() vim.cmd.RustLsp("expandMacro") end, "Expand macro")
+            map("<leader>rm", function()
+              vim.cmd.RustLsp("expandMacro")
+            end, "Expand macro")
 
             -- Explain the error under the cursor in full, including the long-form
             -- rustc explanation (`rustc --explain E0499`).
-            map("<leader>re", function() vim.cmd.RustLsp("explainError") end, "Explain error")
-            map("<leader>rD", function() vim.cmd.RustLsp("renderDiagnostic") end, "Render diagnostic (full)")
+            map("<leader>re", function()
+              vim.cmd.RustLsp("explainError")
+            end, "Explain error")
+            map("<leader>rD", function()
+              vim.cmd.RustLsp("renderDiagnostic")
+            end, "Render diagnostic (full)")
 
             -- Navigate the module tree.
-            map("<leader>rp", function() vim.cmd.RustLsp("parentModule") end, "Go to parent module")
-            map("<leader>rc", function() vim.cmd.RustLsp("openCargo") end, "Open Cargo.toml")
+            map("<leader>rp", function()
+              vim.cmd.RustLsp("parentModule")
+            end, "Go to parent module")
+            map("<leader>rc", function()
+              vim.cmd.RustLsp("openCargo")
+            end, "Open Cargo.toml")
             -- `ro` not `rD`: <leader>rD is already the full diagnostic renderer
             -- above, and a key mapped twice silently keeps only the last one.
-            map("<leader>ro", function() vim.cmd.RustLsp("openDocs") end, "Open docs.rs for symbol")
+            map("<leader>ro", function()
+              vim.cmd.RustLsp("openDocs")
+            end, "Open docs.rs for symbol")
 
             -- Rust-aware join: merges lines and fixes up trailing commas and
             -- braces, unlike plain `J`.
-            map("<leader>rj", function() vim.cmd.RustLsp("joinLines") end, "Join lines (Rust-aware)")
+            map("<leader>rj", function()
+              vim.cmd.RustLsp("joinLines")
+            end, "Join lines (Rust-aware)")
 
             -- Move an item up/down past its sibling, keeping syntax valid.
-            map("<leader>rk", function() vim.cmd.RustLsp({ "moveItem", "up" }) end, "Move item up")
-            map("<leader>rJ", function() vim.cmd.RustLsp({ "moveItem", "down" }) end, "Move item down")
+            map("<leader>rk", function()
+              vim.cmd.RustLsp({ "moveItem", "up" })
+            end, "Move item up")
+            map("<leader>rJ", function()
+              vim.cmd.RustLsp({ "moveItem", "down" })
+            end, "Move item down")
 
             -- Hover actions: like `K`, but the popup's entries are actionable
             -- (jump to impl, open docs, view full type).
-            map("K", function() vim.cmd.RustLsp({ "hover", "actions" }) end, "Hover with actions")
+            map("K", function()
+              vim.cmd.RustLsp({ "hover", "actions" })
+            end, "Hover with actions")
           end,
 
           default_settings = {
@@ -116,7 +142,7 @@ return {
               check = {
                 command = "clippy",
                 extraArgs = { "--no-deps" }, -- do not lint dependencies: much faster
-                allTargets = true,           -- include tests and benches
+                allTargets = true, -- include tests and benches
               },
 
               -- ── Inlay hints ─────────────────────────────────────────────
@@ -138,7 +164,7 @@ return {
                 -- Offer methods and traits that are not yet imported, and add the
                 -- `use` line on accept. The Rust equivalent of auto-import.
                 autoimport = { enable = true },
-                postfix = { enable = true },   -- `expr.ok` -> `Ok(expr)`
+                postfix = { enable = true }, -- `expr.ok` -> `Ok(expr)`
                 callable = { snippets = "fill_arguments" },
                 -- Suggest private items in the same crate.
                 privateEditable = { enable = true },

@@ -108,11 +108,7 @@ return {
           local python = find_venv_python(root)
           if python then
             config.settings = config.settings or {}
-            config.settings.python = vim.tbl_deep_extend(
-              "force",
-              config.settings.python or {},
-              { pythonPath = python }
-            )
+            config.settings.python = vim.tbl_deep_extend("force", config.settings.python or {}, { pythonPath = python })
           end
         end,
       })

@@ -255,15 +255,23 @@ return {
     opts = {
       options = {
         -- Show one entry per buffer, and let the mouse close them.
-        close_command = function(n) Snacks.bufdelete(n) end,
-        right_mouse_command = function(n) Snacks.bufdelete(n) end,
+        close_command = function(n)
+          Snacks.bufdelete(n)
+        end,
+        right_mouse_command = function(n)
+          Snacks.bufdelete(n)
+        end,
         diagnostics = "nvim_lsp",
         -- Render a compact "  2  1" on a tab that has problems, so you can see
         -- which file is broken without opening it.
         diagnostics_indicator = function(_, _, diag)
           local out = {}
-          if diag.error then table.insert(out, icons.diagnostics.Error .. diag.error) end
-          if diag.warning then table.insert(out, icons.diagnostics.Warn .. diag.warning) end
+          if diag.error then
+            table.insert(out, icons.diagnostics.Error .. diag.error)
+          end
+          if diag.warning then
+            table.insert(out, icons.diagnostics.Warn .. diag.warning)
+          end
           return table.concat(out, " ")
         end,
         -- Leave room for the file explorer so tabs are not hidden behind it.
@@ -315,13 +323,45 @@ return {
       -- Notifications are handled by snacks.notifier, not nvim-notify.
     },
     keys = {
-      { "<leader>un", function() require("noice").cmd("dismiss") end, desc = "Dismiss all notifications" },
-      { "<leader>uN", function() require("noice").cmd("history") end, desc = "Message history" },
+      {
+        "<leader>un",
+        function()
+          require("noice").cmd("dismiss")
+        end,
+        desc = "Dismiss all notifications",
+      },
+      {
+        "<leader>uN",
+        function()
+          require("noice").cmd("history")
+        end,
+        desc = "Message history",
+      },
       -- Scroll inside an LSP hover/documentation float without leaving the buffer.
-      { "<C-f>", function() if not require("noice.lsp").scroll(4) then return "<C-f>" end end,
-        silent = true, expr = true, desc = "Scroll forward in float", mode = { "i", "n", "s" } },
-      { "<C-b>", function() if not require("noice.lsp").scroll(-4) then return "<C-b>" end end,
-        silent = true, expr = true, desc = "Scroll backward in float", mode = { "i", "n", "s" } },
+      {
+        "<C-f>",
+        function()
+          if not require("noice.lsp").scroll(4) then
+            return "<C-f>"
+          end
+        end,
+        silent = true,
+        expr = true,
+        desc = "Scroll forward in float",
+        mode = { "i", "n", "s" },
+      },
+      {
+        "<C-b>",
+        function()
+          if not require("noice.lsp").scroll(-4) then
+            return "<C-b>"
+          end
+        end,
+        silent = true,
+        expr = true,
+        desc = "Scroll backward in float",
+        mode = { "i", "n", "s" },
+      },
     },
     opts = {
       lsp = {
@@ -363,8 +403,8 @@ return {
           filter = {
             event = "msg_show",
             any = {
-              { find = "%d+L, %d+B" },        -- "12L, 340B" after writing
-              { find = "; after #%d+" },       -- undo/redo position spam
+              { find = "%d+L, %d+B" }, -- "12L, 340B" after writing
+              { find = "; after #%d+" }, -- undo/redo position spam
               { find = "; before #%d+" },
               { find = "%d fewer lines" },
               { find = "%d more lines" },
@@ -414,8 +454,12 @@ return {
         -- Coloured background bars for h1..h6, warm-to-cool so nesting is obvious.
         icons = { "\u{f0a9} ", "\u{f105} ", "\u{f105} ", "\u{f105} ", "\u{f105} ", "\u{f105} " },
         backgrounds = {
-          "RenderMarkdownH1Bg", "RenderMarkdownH2Bg", "RenderMarkdownH3Bg",
-          "RenderMarkdownH4Bg", "RenderMarkdownH5Bg", "RenderMarkdownH6Bg",
+          "RenderMarkdownH1Bg",
+          "RenderMarkdownH2Bg",
+          "RenderMarkdownH3Bg",
+          "RenderMarkdownH4Bg",
+          "RenderMarkdownH5Bg",
+          "RenderMarkdownH6Bg",
         },
       },
       code = {

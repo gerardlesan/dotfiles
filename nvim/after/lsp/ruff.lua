@@ -23,9 +23,9 @@ return {
         select = { "E", "W", "F", "I", "UP", "B", "SIM", "C4" },
         ignore = {
           "E501", -- line too long: the formatter handles length; a hard error on
-                  -- a long URL in a comment is pure noise
+          -- a long URL in a comment is pure noise
           "B008", -- function call in argument default: this is how FastAPI's
-                  -- Depends() is meant to be used
+          -- Depends() is meant to be used
         },
       },
 

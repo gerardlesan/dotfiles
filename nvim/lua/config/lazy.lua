@@ -18,7 +18,12 @@ local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local repo = "https://github.com/folke/lazy.nvim.git"
   local out = vim.fn.system({
-    "git", "clone", "--filter=blob:none", "--branch=stable", repo, lazypath,
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "--branch=stable",
+    repo,
+    lazypath,
   })
   if vim.v.shell_error ~= 0 then
     vim.api.nvim_echo({
@@ -36,7 +41,7 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
   spec = {
-    { import = "plugins" },      -- concerns
+    { import = "plugins" }, -- concerns
     { import = "plugins.lang" }, -- languages
   },
 
@@ -76,9 +81,9 @@ require("lazy").setup({
     -- Escaped for the same reason as the palette icons — see the long note in
     -- lua/config/palette.lua about Private Use Area characters not surviving.
     icons = {
-      ft = "\u{f07b} ",         -- nf-fa-folder
-      lazy = "\u{f0e7} ",       -- nf-fa-bolt
-      loaded = "\u{f111} ",     -- nf-fa-circle (filled = loaded)
+      ft = "\u{f07b} ", -- nf-fa-folder
+      lazy = "\u{f0e7} ", -- nf-fa-bolt
+      loaded = "\u{f111} ", -- nf-fa-circle (filled = loaded)
       not_loaded = "\u{f10c} ", -- nf-fa-circle_o (hollow = not yet loaded)
     },
   },
@@ -90,12 +95,12 @@ require("lazy").setup({
       -- startup and, more usefully, stops netrw from hijacking `:edit <dir>`
       -- (oil.nvim and neo-tree own directories here instead).
       disabled_plugins = {
-        "gzip",        -- transparently edit .gz files
+        "gzip", -- transparently edit .gz files
         "netrwPlugin", -- built-in file browser + :Gbrowse-style URL opening
-        "tarPlugin",   -- browse .tar archives
-        "tohtml",      -- :TOhtml
-        "tutor",       -- :Tutor
-        "zipPlugin",   -- browse .zip archives
+        "tarPlugin", -- browse .tar archives
+        "tohtml", -- :TOhtml
+        "tutor", -- :Tutor
+        "zipPlugin", -- browse .zip archives
         -- Kept ENABLED on purpose:
         --   matchit / matchparen — replaced by vim.treesitter + mini.pairs, but
         --   harmless and still used for % in filetypes without a parser.

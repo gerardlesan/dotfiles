@@ -28,13 +28,55 @@ return {
     -- both a complete mapping and a prefix without introducing a 'timeoutlen'
     -- delay on every key beneath it.
     keys = {
-      { "<leader>cps", function() require("package-info").show({ force = true }) end, desc = "npm: show versions" },
-      { "<leader>cph", function() require("package-info").hide() end, desc = "npm: hide versions" },
-      { "<leader>cpt", function() require("package-info").toggle() end, desc = "npm: toggle versions" },
-      { "<leader>cpu", function() require("package-info").update() end, desc = "npm: update package" },
-      { "<leader>cpd", function() require("package-info").delete() end, desc = "npm: delete package" },
-      { "<leader>cpi", function() require("package-info").install() end, desc = "npm: install new package" },
-      { "<leader>cpv", function() require("package-info").change_version() end, desc = "npm: change version" },
+      {
+        "<leader>cps",
+        function()
+          require("package-info").show({ force = true })
+        end,
+        desc = "npm: show versions",
+      },
+      {
+        "<leader>cph",
+        function()
+          require("package-info").hide()
+        end,
+        desc = "npm: hide versions",
+      },
+      {
+        "<leader>cpt",
+        function()
+          require("package-info").toggle()
+        end,
+        desc = "npm: toggle versions",
+      },
+      {
+        "<leader>cpu",
+        function()
+          require("package-info").update()
+        end,
+        desc = "npm: update package",
+      },
+      {
+        "<leader>cpd",
+        function()
+          require("package-info").delete()
+        end,
+        desc = "npm: delete package",
+      },
+      {
+        "<leader>cpi",
+        function()
+          require("package-info").install()
+        end,
+        desc = "npm: install new package",
+      },
+      {
+        "<leader>cpv",
+        function()
+          require("package-info").change_version()
+        end,
+        desc = "npm: change version",
+      },
     },
     opts = {
       colors = {
@@ -53,9 +95,15 @@ return {
       -- Detect the package manager from the lockfile rather than assuming npm.
       package_manager = (function()
         local cwd = vim.uv.cwd() or "."
-        if vim.uv.fs_stat(cwd .. "/pnpm-lock.yaml") then return "pnpm" end
-        if vim.uv.fs_stat(cwd .. "/yarn.lock") then return "yarn" end
-        if vim.uv.fs_stat(cwd .. "/bun.lockb") then return "bun" end
+        if vim.uv.fs_stat(cwd .. "/pnpm-lock.yaml") then
+          return "pnpm"
+        end
+        if vim.uv.fs_stat(cwd .. "/yarn.lock") then
+          return "yarn"
+        end
+        if vim.uv.fs_stat(cwd .. "/bun.lockb") then
+          return "bun"
+        end
         return "npm"
       end)(),
       autostart = true,
@@ -78,7 +126,13 @@ return {
           -- No "jsonc": JSON-with-comments uses the `json` parser via an alias
           -- registered in lua/plugins/treesitter.lua.
           require("nvim-treesitter").install({
-            "typescript", "tsx", "javascript", "jsdoc", "json", "css", "html",
+            "typescript",
+            "tsx",
+            "javascript",
+            "jsdoc",
+            "json",
+            "css",
+            "html",
           })
         end)
       end

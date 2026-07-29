@@ -10,7 +10,7 @@
 
 -- ── Wrapping: on, and cursor motion follows the visual line ─────────────────
 vim.wo.wrap = true
-vim.wo.linebreak = true   -- break at word boundaries, not mid-word
+vim.wo.linebreak = true -- break at word boundaries, not mid-word
 vim.wo.breakindent = true -- wrapped list items stay indented under their bullet
 
 -- Hard-wrap at 80 as you type. Unlike code, prose genuinely wants this: it keeps
@@ -78,7 +78,9 @@ map("n", "<localleader>o", function()
   local pos = 1
   while true do
     local s, e, target = line:find("%[[^%]]*%]%(([^)]+)%)", pos)
-    if not s then break end
+    if not s then
+      break
+    end
     if col >= s and col <= e then
       if target:match("^https?://") then
         vim.ui.open(target)
@@ -95,9 +97,9 @@ map("n", "<localleader>o", function()
 end, "Open link under cursor")
 
 -- Wrap the visual selection in bold / italic / code.
-map("x", "<localleader>b", "c**<C-r>\"**<Esc>", "Bold selection")
-map("x", "<localleader>i", "c*<C-r>\"*<Esc>", "Italic selection")
-map("x", "<localleader>c", "c`<C-r>\"`<Esc>", "Code selection")
+map("x", "<localleader>b", 'c**<C-r>"**<Esc>', "Bold selection")
+map("x", "<localleader>i", 'c*<C-r>"*<Esc>', "Italic selection")
+map("x", "<localleader>c", 'c`<C-r>"`<Esc>', "Code selection")
 
 -- Reflow the current paragraph to 'textwidth'. `gqip` also works; this is shorter.
 map("n", "<localleader>q", "gqip", "Reflow paragraph")

@@ -27,7 +27,7 @@ return {
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter", -- adapters locate tests via treesitter
-      "nvim-neotest/nvim-nio",           -- async library neotest is built on
+      "nvim-neotest/nvim-nio", -- async library neotest is built on
       "antoinemadec/FixCursorHold.nvim", -- works around a CursorHold performance bug
 
       -- ── Adapters ───────────────────────────────────────────────────────────
@@ -39,42 +39,58 @@ return {
     keys = {
       {
         "<leader>tr",
-        function() require("neotest").run.run() end,
+        function()
+          require("neotest").run.run()
+        end,
         desc = "Test: run nearest",
       },
       {
         "<leader>tf",
-        function() require("neotest").run.run(vim.fn.expand("%")) end,
+        function()
+          require("neotest").run.run(vim.fn.expand("%"))
+        end,
         desc = "Test: run this file",
       },
       {
         "<leader>tA",
-        function() require("neotest").run.run(vim.uv.cwd()) end,
+        function()
+          require("neotest").run.run(vim.uv.cwd())
+        end,
         desc = "Test: run whole suite",
       },
       {
         "<leader>tl",
-        function() require("neotest").run.run_last() end,
+        function()
+          require("neotest").run.run_last()
+        end,
         desc = "Test: re-run last",
       },
       {
         "<leader>ts",
-        function() require("neotest").summary.toggle() end,
+        function()
+          require("neotest").summary.toggle()
+        end,
         desc = "Test: toggle suite tree",
       },
       {
         "<leader>to",
-        function() require("neotest").output.open({ enter = true, auto_close = true }) end,
+        function()
+          require("neotest").output.open({ enter = true, auto_close = true })
+        end,
         desc = "Test: show output",
       },
       {
         "<leader>tO",
-        function() require("neotest").output_panel.toggle() end,
+        function()
+          require("neotest").output_panel.toggle()
+        end,
         desc = "Test: toggle output panel",
       },
       {
         "<leader>tS",
-        function() require("neotest").run.stop() end,
+        function()
+          require("neotest").run.stop()
+        end,
         desc = "Test: stop running",
       },
       {
@@ -82,23 +98,31 @@ return {
         -- feedback loop available, and the main reason to use neotest over a
         -- terminal.
         "<leader>tw",
-        function() require("neotest").watch.toggle(vim.fn.expand("%")) end,
+        function()
+          require("neotest").watch.toggle(vim.fn.expand("%"))
+        end,
         desc = "Test: toggle watch mode (this file)",
       },
       {
         "<leader>tW",
-        function() require("neotest").watch.toggle() end,
+        function()
+          require("neotest").watch.toggle()
+        end,
         desc = "Test: toggle watch mode (nearest)",
       },
       -- Jump between failing tests, matching the ]x convention.
       {
         "]T",
-        function() require("neotest").jump.next({ status = "failed" }) end,
+        function()
+          require("neotest").jump.next({ status = "failed" })
+        end,
         desc = "Test: next failed",
       },
       {
         "[T",
-        function() require("neotest").jump.prev({ status = "failed" }) end,
+        function()
+          require("neotest").jump.prev({ status = "failed" })
+        end,
         desc = "Test: previous failed",
       },
     },

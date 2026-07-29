@@ -25,12 +25,12 @@ return {
     event = { "BufReadPre", "BufNewFile" },
     opts = {
       signs = {
-        add = { text = "\u{2503}" },          -- ┃ heavy vertical
+        add = { text = "\u{2503}" }, -- ┃ heavy vertical
         change = { text = "\u{2503}" },
-        delete = { text = "\u{2581}" },       -- ▁ low block, reads as "removed"
-        topdelete = { text = "\u{2594}" },    -- ▔ high block
+        delete = { text = "\u{2581}" }, -- ▁ low block, reads as "removed"
+        topdelete = { text = "\u{2594}" }, -- ▔ high block
         changedelete = { text = "\u{223c}" }, -- ∼
-        untracked = { text = "\u{2506}" },    -- ┆ dashed, distinct from tracked
+        untracked = { text = "\u{2506}" }, -- ┆ dashed, distinct from tracked
       },
       -- Staged changes get a dimmer variant, so you can tell at a glance what is
       -- already staged versus still in the working tree.
@@ -44,13 +44,23 @@ return {
       signs_staged_enable = true,
 
       signcolumn = true,
-      numhl = false,   -- also tint the line number: redundant with signs
-      linehl = false,  -- tint the whole line: far too loud for normal editing
+      numhl = false, -- also tint the line number: redundant with signs
+      linehl = false, -- tint the whole line: far too loud for normal editing
       word_diff = false,
 
-      -- Inline blame at end of line, after a pause. This is the highest-value
-      -- gitsigns feature: "who wrote this and why" without leaving the buffer.
-      current_line_blame = true,
+      -- Inline blame at end of line. DISABLED.
+      --
+      -- It appends "author, 3 days ago • commit summary" as virtual text to
+      -- whichever line the cursor is on, which means the right-hand side of the
+      -- screen changes on every cursor move. Informative, and a constant
+      -- distraction while actually writing code.
+      --
+      -- The information is still one keystroke away, and in better form:
+      --   <leader>ghb   blame this line in a float, with the full commit message
+      --   <leader>ghB   blame the whole file in a split
+      --   <leader>gtb   turn this inline blame back on for the session
+      --   <leader>gL    picker showing every commit that touched this line
+      current_line_blame = false,
       current_line_blame_opts = {
         virt_text = true,
         virt_text_pos = "eol",
@@ -96,8 +106,12 @@ return {
           end
         end, "Previous hunk")
 
-        map("n", "]H", function() gs.nav_hunk("last") end, "Last hunk")
-        map("n", "[H", function() gs.nav_hunk("first") end, "First hunk")
+        map("n", "]H", function()
+          gs.nav_hunk("last")
+        end, "Last hunk")
+        map("n", "[H", function()
+          gs.nav_hunk("first")
+        end, "First hunk")
 
         -- ── Staging individual hunks ───────────────────────────────────────
         -- This is what replaces `git add -p`: put the cursor on a change and
@@ -119,10 +133,14 @@ return {
         -- ── Inspecting ─────────────────────────────────────────────────────
         map("n", "<leader>ghp", gs.preview_hunk_inline, "Preview hunk inline")
         map("n", "<leader>ghP", gs.preview_hunk, "Preview hunk in float")
-        map("n", "<leader>ghb", function() gs.blame_line({ full = true }) end, "Blame line (full)")
+        map("n", "<leader>ghb", function()
+          gs.blame_line({ full = true })
+        end, "Blame line (full)")
         map("n", "<leader>ghB", gs.blame, "Blame whole file")
         map("n", "<leader>ghd", gs.diffthis, "Diff against index")
-        map("n", "<leader>ghD", function() gs.diffthis("~") end, "Diff against last commit")
+        map("n", "<leader>ghD", function()
+          gs.diffthis("~")
+        end, "Diff against last commit")
 
         -- ── Toggles ────────────────────────────────────────────────────────
         map("n", "<leader>gtb", gs.toggle_current_line_blame, "Toggle inline blame")

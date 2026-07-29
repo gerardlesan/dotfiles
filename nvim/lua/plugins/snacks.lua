@@ -59,11 +59,11 @@ return {
       -- signs and fold markers, instead of them fighting for the same column.
       statuscolumn = {
         enabled = true,
-        left = { "mark", "sign" },   -- marks and non-git signs on the left
-        right = { "fold", "git" },   -- fold markers and git signs on the right
+        left = { "mark", "sign" }, -- marks and non-git signs on the left
+        right = { "fold", "git" }, -- fold markers and git signs on the right
         folds = {
-          open = true,               -- show the fold marker only when foldable
-          git_hl = true,             -- colour the fold marker by git status
+          open = true, -- show the fold marker only when foldable
+          git_hl = true, -- colour the fold marker by git status
         },
         git = { patterns = { "GitSign", "MiniDiffSign" } },
       },
@@ -157,7 +157,7 @@ return {
         formatters = {
           file = {
             filename_first = true, -- "options.lua  lua/config/" reads better than
-                                   -- the full path with the name buried at the end
+            -- the full path with the name buried at the end
             truncate = 80,
           },
         },
@@ -186,12 +186,23 @@ return {
         -- Exclude noise from every file/grep picker. ripgrep and fd already
         -- respect .gitignore; these are the directories that are not in it.
         exclude = {
-          ".git", "node_modules", "target", "dist", "build",
-          "__pycache__", ".venv", "venv", ".mypy_cache", ".ruff_cache",
-          ".pytest_cache", "*.lock", ".next", ".turbo",
+          ".git",
+          "node_modules",
+          "target",
+          "dist",
+          "build",
+          "__pycache__",
+          ".venv",
+          "venv",
+          ".mypy_cache",
+          ".ruff_cache",
+          ".pytest_cache",
+          "*.lock",
+          ".next",
+          ".turbo",
         },
         sources = {
-          files = { hidden = true },  -- show dotfiles: this repo is one
+          files = { hidden = true }, -- show dotfiles: this repo is one
           grep = { hidden = true },
           explorer = { hidden = true },
         },
@@ -221,8 +232,17 @@ return {
       image = {
         enabled = true,
         formats = {
-          "png", "jpg", "jpeg", "gif", "bmp", "webp", "tiff",
-          "heic", "avif", "svg", "pdf",
+          "png",
+          "jpg",
+          "jpeg",
+          "gif",
+          "bmp",
+          "webp",
+          "tiff",
+          "heic",
+          "avif",
+          "svg",
+          "pdf",
         },
         doc = {
           enabled = true,
@@ -235,12 +255,18 @@ return {
         },
         -- Directories searched for a relative image path in markdown.
         img_dirs = {
-          "img", "images", "assets", "static", "public", "media",
-          "attachments", "docs/images",
+          "img",
+          "images",
+          "assets",
+          "static",
+          "public",
+          "media",
+          "attachments",
+          "docs/images",
         },
         convert = {
           notify = true, -- tell you when ImageMagick is missing rather than
-                         -- silently rendering nothing
+          -- silently rendering nothing
         },
         -- Render $...$ and $$...$$ LaTeX as images in markdown. Needs a TeX
         -- distribution; harmless if absent (it just does nothing).
@@ -266,23 +292,60 @@ return {
           keys = {
             { icon = icons.ui.search, key = "f", desc = "Find File", action = ":lua Snacks.dashboard.pick('files')" },
             { icon = icons.file.newfile, key = "n", desc = "New File", action = ":ene | startinsert" },
-            { icon = icons.ui.search, key = "g", desc = "Grep Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
-            { icon = icons.ui.folder, key = "r", desc = "Recent Files", action = ":lua Snacks.dashboard.pick('oldfiles')" },
+            {
+              icon = icons.ui.search,
+              key = "g",
+              desc = "Grep Text",
+              action = ":lua Snacks.dashboard.pick('live_grep')",
+            },
+            {
+              icon = icons.ui.folder,
+              key = "r",
+              desc = "Recent Files",
+              action = ":lua Snacks.dashboard.pick('oldfiles')",
+            },
             { icon = icons.ui.branch, key = "G", desc = "Lazygit", action = ":lua Snacks.lazygit()" },
-            { icon = icons.ui.lsp, key = "c", desc = "Config", action = ":lua Snacks.dashboard.pick('files', { cwd = vim.fn.stdpath('config') })" },
+            {
+              icon = icons.ui.lsp,
+              key = "c",
+              desc = "Config",
+              action = ":lua Snacks.dashboard.pick('files', { cwd = vim.fn.stdpath('config') })",
+            },
             { icon = icons.ui.chevron, key = "s", desc = "Restore Session", section = "session" },
-            { icon = icons.ui.lightning, key = "l", desc = "Lazy", action = ":Lazy", enabled = package.loaded.lazy ~= nil },
+            {
+              icon = icons.ui.lightning,
+              key = "l",
+              desc = "Lazy",
+              action = ":Lazy",
+              enabled = package.loaded.lazy ~= nil,
+            },
             { icon = icons.diagnostics.Error, key = "q", desc = "Quit", action = ":qa" },
           },
         },
         sections = {
           { section = "header" },
           { section = "keys", gap = 1, padding = 1 },
-          { section = "recent_files", icon = icons.ui.folder, title = "Recent Files", indent = 2, padding = 1, limit = 5 },
+          {
+            section = "recent_files",
+            icon = icons.ui.folder,
+            title = "Recent Files",
+            indent = 2,
+            padding = 1,
+            limit = 5,
+          },
           -- Uncommitted changes in the current repo, right on the start screen.
-          { section = "git", icon = icons.ui.branch, title = "Git Status", enabled = function()
+          {
+            section = "git",
+            icon = icons.ui.branch,
+            title = "Git Status",
+            enabled = function()
               return Snacks.git.get_root() ~= nil
-            end, cmd = "git status --short --branch --renames", height = 6, padding = 1, indent = 2 },
+            end,
+            cmd = "git status --short --branch --renames",
+            height = 6,
+            padding = 1,
+            indent = 2,
+          },
           { section = "startup" },
         },
       },
@@ -294,7 +357,7 @@ return {
           wo = { wrap = true }, -- wrap long notification text instead of clipping
         },
         lazygit = {
-          width = 0,  -- 0 = full width
+          width = 0, -- 0 = full width
           height = 0, -- 0 = full height
         },
       },
@@ -316,89 +379,431 @@ return {
     -- it keeps each plugin's bindings discoverable in one place.
     keys = {
       -- ── Top-level, most-used ──────────────────────────────────────────────
-      { "<leader><space>", function() Snacks.picker.smart() end, desc = "Find files (smart)" },
-      { "<leader>/", function() Snacks.picker.grep() end, desc = "Grep project" },
-      { "<leader>,", function() Snacks.picker.buffers() end, desc = "Switch buffer" },
-      { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command history" },
-      { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification history" },
+      {
+        "<leader><space>",
+        function()
+          Snacks.picker.smart()
+        end,
+        desc = "Find files (smart)",
+      },
+      {
+        "<leader>/",
+        function()
+          Snacks.picker.grep()
+        end,
+        desc = "Grep project",
+      },
+      {
+        "<leader>,",
+        function()
+          Snacks.picker.buffers()
+        end,
+        desc = "Switch buffer",
+      },
+      {
+        "<leader>:",
+        function()
+          Snacks.picker.command_history()
+        end,
+        desc = "Command history",
+      },
+      {
+        "<leader>n",
+        function()
+          Snacks.picker.notifications()
+        end,
+        desc = "Notification history",
+      },
 
       -- ── Find (<leader>f) ──────────────────────────────────────────────────
-      { "<leader>ff", function() Snacks.picker.files() end, desc = "Find files" },
-      { "<leader>fF", function() Snacks.picker.files({ cwd = vim.fn.expand("%:p:h") }) end, desc = "Find files (this dir)" },
-      { "<leader>fg", function() Snacks.picker.git_files() end, desc = "Find git files" },
-      { "<leader>fr", function() Snacks.picker.recent() end, desc = "Recent files" },
-      { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
-      { "<leader>fC", function() Snacks.picker.files({ cwd = vim.fn.stdpath("config") }) end, desc = "Find in config" },
-      { "<leader>fz", function() Snacks.picker.zoxide() end, desc = "Zoxide directories" },
+      {
+        "<leader>ff",
+        function()
+          Snacks.picker.files()
+        end,
+        desc = "Find files",
+      },
+      {
+        "<leader>fF",
+        function()
+          Snacks.picker.files({ cwd = vim.fn.expand("%:p:h") })
+        end,
+        desc = "Find files (this dir)",
+      },
+      {
+        "<leader>fg",
+        function()
+          Snacks.picker.git_files()
+        end,
+        desc = "Find git files",
+      },
+      {
+        "<leader>fr",
+        function()
+          Snacks.picker.recent()
+        end,
+        desc = "Recent files",
+      },
+      {
+        "<leader>fb",
+        function()
+          Snacks.picker.buffers()
+        end,
+        desc = "Buffers",
+      },
+      {
+        "<leader>fC",
+        function()
+          Snacks.picker.files({ cwd = vim.fn.stdpath("config") })
+        end,
+        desc = "Find in config",
+      },
+      {
+        "<leader>fz",
+        function()
+          Snacks.picker.zoxide()
+        end,
+        desc = "Zoxide directories",
+      },
 
       -- ── Search (<leader>s) ────────────────────────────────────────────────
-      { "<leader>sg", function() Snacks.picker.grep() end, desc = "Grep project" },
-      { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Grep open buffers" },
-      { "<leader>sw", function() Snacks.picker.grep_word() end, desc = "Grep word under cursor", mode = { "n", "x" } },
-      { "<leader>sb", function() Snacks.picker.lines() end, desc = "Search lines in buffer" },
+      {
+        "<leader>sg",
+        function()
+          Snacks.picker.grep()
+        end,
+        desc = "Grep project",
+      },
+      {
+        "<leader>sB",
+        function()
+          Snacks.picker.grep_buffers()
+        end,
+        desc = "Grep open buffers",
+      },
+      {
+        "<leader>sw",
+        function()
+          Snacks.picker.grep_word()
+        end,
+        desc = "Grep word under cursor",
+        mode = { "n", "x" },
+      },
+      {
+        "<leader>sb",
+        function()
+          Snacks.picker.lines()
+        end,
+        desc = "Search lines in buffer",
+      },
       -- THE KEYBINDINGS SCREEN, searchable. which-key shows what is available
       -- from a prefix; this searches every mapping by description.
-      { "<leader>sk", function() Snacks.picker.keymaps() end, desc = "Search keymaps" },
-      { "<leader>sh", function() Snacks.picker.help() end, desc = "Help pages" },
-      { "<leader>sd", function() Snacks.picker.diagnostics() end, desc = "Diagnostics (project)" },
-      { "<leader>sD", function() Snacks.picker.diagnostics_buffer() end, desc = "Diagnostics (buffer)" },
-      { "<leader>sc", function() Snacks.picker.commands() end, desc = "Commands" },
-      { "<leader>sa", function() Snacks.picker.autocmds() end, desc = "Autocommands" },
-      { "<leader>sH", function() Snacks.picker.highlights() end, desc = "Highlight groups" },
-      { "<leader>sm", function() Snacks.picker.marks() end, desc = "Marks" },
-      { "<leader>sj", function() Snacks.picker.jumps() end, desc = "Jump list" },
-      { "<leader>sq", function() Snacks.picker.qflist() end, desc = "Quickfix list" },
-      { "<leader>sl", function() Snacks.picker.loclist() end, desc = "Location list" },
-      { "<leader>sR", function() Snacks.picker.resume() end, desc = "Resume last picker" },
-      { "<leader>su", function() Snacks.picker.undo() end, desc = "Undo history" },
-      { "<leader>s\"", function() Snacks.picker.registers() end, desc = "Registers" },
-      { "<leader>s/", function() Snacks.picker.search_history() end, desc = "Search history" },
-      { "<leader>sC", function() Snacks.picker.colorschemes() end, desc = "Colorschemes (live preview)" },
-      { "<leader>si", function() Snacks.picker.icons() end, desc = "Icons / emoji" },
-      { "<leader>sp", function() Snacks.picker.projects() end, desc = "Projects" },
-      { "<leader>sM", function() Snacks.picker.man() end, desc = "Man pages" },
+      {
+        "<leader>sk",
+        function()
+          Snacks.picker.keymaps()
+        end,
+        desc = "Search keymaps",
+      },
+      {
+        "<leader>sh",
+        function()
+          Snacks.picker.help()
+        end,
+        desc = "Help pages",
+      },
+      {
+        "<leader>sd",
+        function()
+          Snacks.picker.diagnostics()
+        end,
+        desc = "Diagnostics (project)",
+      },
+      {
+        "<leader>sD",
+        function()
+          Snacks.picker.diagnostics_buffer()
+        end,
+        desc = "Diagnostics (buffer)",
+      },
+      {
+        "<leader>sc",
+        function()
+          Snacks.picker.commands()
+        end,
+        desc = "Commands",
+      },
+      {
+        "<leader>sa",
+        function()
+          Snacks.picker.autocmds()
+        end,
+        desc = "Autocommands",
+      },
+      {
+        "<leader>sH",
+        function()
+          Snacks.picker.highlights()
+        end,
+        desc = "Highlight groups",
+      },
+      {
+        "<leader>sm",
+        function()
+          Snacks.picker.marks()
+        end,
+        desc = "Marks",
+      },
+      {
+        "<leader>sj",
+        function()
+          Snacks.picker.jumps()
+        end,
+        desc = "Jump list",
+      },
+      {
+        "<leader>sq",
+        function()
+          Snacks.picker.qflist()
+        end,
+        desc = "Quickfix list",
+      },
+      {
+        "<leader>sl",
+        function()
+          Snacks.picker.loclist()
+        end,
+        desc = "Location list",
+      },
+      {
+        "<leader>sR",
+        function()
+          Snacks.picker.resume()
+        end,
+        desc = "Resume last picker",
+      },
+      {
+        "<leader>su",
+        function()
+          Snacks.picker.undo()
+        end,
+        desc = "Undo history",
+      },
+      {
+        '<leader>s"',
+        function()
+          Snacks.picker.registers()
+        end,
+        desc = "Registers",
+      },
+      {
+        "<leader>s/",
+        function()
+          Snacks.picker.search_history()
+        end,
+        desc = "Search history",
+      },
+      {
+        "<leader>sC",
+        function()
+          Snacks.picker.colorschemes()
+        end,
+        desc = "Colorschemes (live preview)",
+      },
+      {
+        "<leader>si",
+        function()
+          Snacks.picker.icons()
+        end,
+        desc = "Icons / emoji",
+      },
+      {
+        "<leader>sp",
+        function()
+          Snacks.picker.projects()
+        end,
+        desc = "Projects",
+      },
+      {
+        "<leader>sM",
+        function()
+          Snacks.picker.man()
+        end,
+        desc = "Man pages",
+      },
 
       -- ── Git (<leader>g) — see also lua/plugins/git.lua ───────────────────
-      { "<leader>gg", function() Snacks.lazygit() end, desc = "Lazygit" },
-      { "<leader>gf", function() Snacks.lazygit.log_file() end, desc = "Lazygit: file history" },
-      { "<leader>gl", function() Snacks.picker.git_log() end, desc = "Git log" },
-      { "<leader>gL", function() Snacks.picker.git_log_line() end, desc = "Git log (current line)" },
-      { "<leader>gs", function() Snacks.picker.git_status() end, desc = "Git status" },
-      { "<leader>gS", function() Snacks.picker.git_stash() end, desc = "Git stash" },
-      { "<leader>gB", function() Snacks.picker.git_branches() end, desc = "Git branches" },
-      { "<leader>gd", function() Snacks.picker.git_diff() end, desc = "Git diff (hunks)" },
+      {
+        "<leader>gg",
+        function()
+          Snacks.lazygit()
+        end,
+        desc = "Lazygit",
+      },
+      {
+        "<leader>gf",
+        function()
+          Snacks.lazygit.log_file()
+        end,
+        desc = "Lazygit: file history",
+      },
+      {
+        "<leader>gl",
+        function()
+          Snacks.picker.git_log()
+        end,
+        desc = "Git log",
+      },
+      {
+        "<leader>gL",
+        function()
+          Snacks.picker.git_log_line()
+        end,
+        desc = "Git log (current line)",
+      },
+      {
+        "<leader>gs",
+        function()
+          Snacks.picker.git_status()
+        end,
+        desc = "Git status",
+      },
+      {
+        "<leader>gS",
+        function()
+          Snacks.picker.git_stash()
+        end,
+        desc = "Git stash",
+      },
+      {
+        "<leader>gB",
+        function()
+          Snacks.picker.git_branches()
+        end,
+        desc = "Git branches",
+      },
+      {
+        "<leader>gd",
+        function()
+          Snacks.picker.git_diff()
+        end,
+        desc = "Git diff (hunks)",
+      },
       -- Open the current file (or selection) on the git forge in a browser.
       -- Understands GitHub, GitLab, Bitbucket and Gitea remotes.
-      { "<leader>go", function() Snacks.gitbrowse() end, desc = "Open in browser (git forge)", mode = { "n", "x" } },
+      {
+        "<leader>go",
+        function()
+          Snacks.gitbrowse()
+        end,
+        desc = "Open in browser (git forge)",
+        mode = { "n", "x" },
+      },
 
       -- ── Buffers (<leader>b) ───────────────────────────────────────────────
       -- Deletes the buffer while LEAVING THE WINDOW OPEN. Plain `:bdelete` closes
       -- the window too, which silently destroys your split layout.
-      { "<leader>bd", function() Snacks.bufdelete() end, desc = "Delete buffer" },
-      { "<leader>bo", function() Snacks.bufdelete.other() end, desc = "Delete other buffers" },
-      { "<leader>bD", function() Snacks.bufdelete.all() end, desc = "Delete all buffers" },
+      {
+        "<leader>bd",
+        function()
+          Snacks.bufdelete()
+        end,
+        desc = "Delete buffer",
+      },
+      {
+        "<leader>bo",
+        function()
+          Snacks.bufdelete.other()
+        end,
+        desc = "Delete other buffers",
+      },
+      {
+        "<leader>bD",
+        function()
+          Snacks.bufdelete.all()
+        end,
+        desc = "Delete all buffers",
+      },
 
       -- ── Terminal ──────────────────────────────────────────────────────────
       -- A floating terminal on a single key. <C-/> is what most terminal emulators
       -- send for Ctrl+slash; <C-_> is the same chord as seen by some terminals, so
       -- both are bound.
-      { "<C-/>", function() Snacks.terminal() end, desc = "Toggle terminal", mode = { "n", "t" } },
-      { "<C-_>", function() Snacks.terminal() end, desc = "Toggle terminal", mode = { "n", "t" } },
-      { "<leader>tt", function() Snacks.terminal() end, desc = "Toggle terminal" },
+      {
+        "<C-/>",
+        function()
+          Snacks.terminal()
+        end,
+        desc = "Toggle terminal",
+        mode = { "n", "t" },
+      },
+      {
+        "<C-_>",
+        function()
+          Snacks.terminal()
+        end,
+        desc = "Toggle terminal",
+        mode = { "n", "t" },
+      },
+      {
+        "<leader>tt",
+        function()
+          Snacks.terminal()
+        end,
+        desc = "Toggle terminal",
+      },
 
       -- ── Image (<leader>i) ─────────────────────────────────────────────────
-      { "<leader>ii", function() Snacks.image.hover() end, desc = "Show image under cursor" },
+      {
+        "<leader>ii",
+        function()
+          Snacks.image.hover()
+        end,
+        desc = "Show image under cursor",
+      },
 
       -- ── Zen / focus ───────────────────────────────────────────────────────
-      { "<leader>z", function() Snacks.zen() end, desc = "Zen mode" },
-      { "<leader>Z", function() Snacks.zen.zoom() end, desc = "Zoom current window" },
+      {
+        "<leader>z",
+        function()
+          Snacks.zen()
+        end,
+        desc = "Zen mode",
+      },
+      {
+        "<leader>Z",
+        function()
+          Snacks.zen.zoom()
+        end,
+        desc = "Zoom current window",
+      },
 
       -- ── Rename, with LSP-aware import updating ───────────────────────────
-      { "<leader>cR", function() Snacks.rename.rename_file() end, desc = "Rename file (update imports)" },
+      {
+        "<leader>cR",
+        function()
+          Snacks.rename.rename_file()
+        end,
+        desc = "Rename file (update imports)",
+      },
 
       -- ── Word navigation (LSP references under cursor) ────────────────────
-      { "]]", function() Snacks.words.jump(vim.v.count1) end, desc = "Next reference", mode = { "n", "t" } },
-      { "[[", function() Snacks.words.jump(-vim.v.count1) end, desc = "Previous reference", mode = { "n", "t" } },
+      {
+        "]]",
+        function()
+          Snacks.words.jump(vim.v.count1)
+        end,
+        desc = "Next reference",
+        mode = { "n", "t" },
+      },
+      {
+        "[[",
+        function()
+          Snacks.words.jump(-vim.v.count1)
+        end,
+        desc = "Previous reference",
+        mode = { "n", "t" },
+      },
     },
 
     init = function()
@@ -410,8 +815,12 @@ return {
           -- Global debug helpers, available from `:lua` and from any config file.
           -- `dd(anything)` pretty-prints it in a float — far better than
           -- `print(vim.inspect(x))`. `bt()` prints a backtrace.
-          _G.dd = function(...) Snacks.debug.inspect(...) end
-          _G.bt = function() Snacks.debug.backtrace() end
+          _G.dd = function(...)
+            Snacks.debug.inspect(...)
+          end
+          _G.bt = function()
+            Snacks.debug.backtrace()
+          end
           -- Route Neovim's own `vim.print` (used by `:=expr`) through it too.
           vim.print = _G.dd
 
@@ -451,17 +860,21 @@ return {
           toggle.option("cursorcolumn", { name = "Cursor Column" }):map("<leader>uu")
           toggle.option("relativenumber", { name = "Relative Numbers" }):map("<leader>uL")
           toggle.line_number():map("<leader>ul")
-          toggle.option("conceallevel", {
-            name = "Conceal",
-            off = 0,
-            -- Restore to 2 (or whatever markdown set) rather than 1.
-            on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2,
-          }):map("<leader>uc")
-          toggle.option("background", {
-            name = "Dark Background",
-            off = "light",
-            on = "dark",
-          }):map("<leader>ub")
+          toggle
+            .option("conceallevel", {
+              name = "Conceal",
+              off = 0,
+              -- Restore to 2 (or whatever markdown set) rather than 1.
+              on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2,
+            })
+            :map("<leader>uc")
+          toggle
+            .option("background", {
+              name = "Dark Background",
+              off = "light",
+              on = "dark",
+            })
+            :map("<leader>ub")
 
           toggle.diagnostics():map("<leader>uD")
           toggle.inlay_hints():map("<leader>uh")
@@ -474,31 +887,33 @@ return {
           -- multi-line virtual_lines style. virtual_lines is far better for long
           -- Rust type errors; virtual_text is more compact for everything else.
           -- Having both on at once is redundant, so this flips between them.
-          toggle.new({
-            id = "diagnostic_virtual_lines",
-            name = "Diagnostic Virtual Lines",
-            get = function()
-              return vim.diagnostic.config().virtual_lines ~= false
-            end,
-            set = function(state)
-              if state then
-                vim.diagnostic.config({
-                  virtual_lines = { current_line = true },
-                  virtual_text = false,
-                })
-              else
-                vim.diagnostic.config({
-                  virtual_lines = false,
-                  virtual_text = {
-                    spacing = 4,
-                    source = "if_many",
-                    prefix = "●",
-                    severity = { min = vim.diagnostic.severity.HINT },
-                  },
-                })
-              end
-            end,
-          }):map("<leader>ud")
+          toggle
+            .new({
+              id = "diagnostic_virtual_lines",
+              name = "Diagnostic Virtual Lines",
+              get = function()
+                return vim.diagnostic.config().virtual_lines ~= false
+              end,
+              set = function(state)
+                if state then
+                  vim.diagnostic.config({
+                    virtual_lines = { current_line = true },
+                    virtual_text = false,
+                  })
+                else
+                  vim.diagnostic.config({
+                    virtual_lines = false,
+                    virtual_text = {
+                      spacing = 4,
+                      source = "if_many",
+                      prefix = "●",
+                      severity = { min = vim.diagnostic.severity.HINT },
+                    },
+                  })
+                end
+              end,
+            })
+            :map("<leader>ud")
         end,
       })
 
@@ -507,9 +922,13 @@ return {
       -- hollow box or a "?", your terminal font is not a patched Nerd Font — see
       -- the README's font section.
       vim.api.nvim_create_user_command("CheckIcons", function()
-        local lines = { "# Nerd Font self-test", "",
+        local lines = {
+          "# Nerd Font self-test",
+          "",
           "Each line should show a GLYPH followed by its name.",
-          "A box, a question mark or blank space means the font is not patched.", "" }
+          "A box, a question mark or blank space means the font is not patched.",
+          "",
+        }
         for group, set in pairs(icons) do
           table.insert(lines, "## " .. group)
           for name, glyph in pairs(set) do

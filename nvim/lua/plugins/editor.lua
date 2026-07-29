@@ -166,14 +166,49 @@ return {
       },
     },
     keys = {
-      { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash jump" },
-      { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash treesitter node" },
+      {
+        "s",
+        mode = { "n", "x", "o" },
+        function()
+          require("flash").jump()
+        end,
+        desc = "Flash jump",
+      },
+      {
+        "S",
+        mode = { "n", "x", "o" },
+        function()
+          require("flash").treesitter()
+        end,
+        desc = "Flash treesitter node",
+      },
       -- Operate on a location *without moving there*: `yr<label>` yanks a remote
       -- text object and returns the cursor to where it started.
-      { "r", mode = "o", function() require("flash").remote() end, desc = "Remote flash" },
-      { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Treesitter search" },
+      {
+        "r",
+        mode = "o",
+        function()
+          require("flash").remote()
+        end,
+        desc = "Remote flash",
+      },
+      {
+        "R",
+        mode = { "o", "x" },
+        function()
+          require("flash").treesitter_search()
+        end,
+        desc = "Treesitter search",
+      },
       -- Toggle flash inside a normal `/` search, when you do want the labels.
-      { "<C-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle flash search" },
+      {
+        "<C-s>",
+        mode = { "c" },
+        function()
+          require("flash").toggle()
+        end,
+        desc = "Toggle flash search",
+      },
     },
   },
 
@@ -226,10 +261,17 @@ return {
     keys = function(_, keys)
       -- Register the keys with lazy so the plugin loads on first use, and with
       -- which-key so they are documented.
-      local opts = { mappings = {
-        add = "gsa", delete = "gsd", find = "gsf", find_left = "gsF",
-        highlight = "gsh", replace = "gsr", update_n_lines = "gsn",
-      } }
+      local opts = {
+        mappings = {
+          add = "gsa",
+          delete = "gsd",
+          find = "gsf",
+          find_left = "gsF",
+          highlight = "gsh",
+          replace = "gsr",
+          update_n_lines = "gsn",
+        },
+      }
       local mappings = {
         { opts.mappings.add, desc = "Add surrounding", mode = { "n", "v" } },
         { opts.mappings.delete, desc = "Delete surrounding" },
@@ -243,8 +285,13 @@ return {
     end,
     opts = {
       mappings = {
-        add = "gsa", delete = "gsd", find = "gsf", find_left = "gsF",
-        highlight = "gsh", replace = "gsr", update_n_lines = "gsn",
+        add = "gsa",
+        delete = "gsd",
+        find = "gsf",
+        find_left = "gsF",
+        highlight = "gsh",
+        replace = "gsr",
+        update_n_lines = "gsn",
       },
     },
   },
@@ -262,7 +309,7 @@ return {
       skip_next = [=[[%w%%%'%[%"%.%`%$]]=],
       skip_ts = { "string" }, -- do not pair inside a string literal
       skip_unbalanced = true, -- do not add a closer if brackets are already unbalanced
-      markdown = true,        -- pair ``` fences in markdown
+      markdown = true, -- pair ``` fences in markdown
     },
   },
 
@@ -294,8 +341,20 @@ return {
     event = { "BufReadPost", "BufNewFile" },
     cmd = { "TodoTrouble", "TodoQuickFix" },
     keys = {
-      { "]t", function() require("todo-comments").jump_next() end, desc = "Next todo comment" },
-      { "[t", function() require("todo-comments").jump_prev() end, desc = "Previous todo comment" },
+      {
+        "]t",
+        function()
+          require("todo-comments").jump_next()
+        end,
+        desc = "Next todo comment",
+      },
+      {
+        "[t",
+        function()
+          require("todo-comments").jump_prev()
+        end,
+        desc = "Previous todo comment",
+      },
       { "<leader>st", "<cmd>TodoTrouble<cr>", desc = "Todo list (Trouble)" },
       { "<leader>sT", "<cmd>TodoTrouble keywords=TODO,FIX,FIXME<cr>", desc = "Todo/Fix only" },
       { "<leader>xt", "<cmd>TodoTrouble<cr>", desc = "Todo list (Trouble)" },
@@ -343,16 +402,24 @@ return {
       { "<leader>xs", "<cmd>Trouble symbols toggle<cr>", desc = "Symbols panel" },
       { "<leader>xl", "<cmd>Trouble loclist toggle<cr>", desc = "Location list" },
       { "<leader>xq", "<cmd>Trouble qflist toggle<cr>", desc = "Quickfix list" },
-      { "<leader>xr", "<cmd>Trouble lsp toggle focus=false win.position=right<cr>", desc = "LSP references / definitions" },
+      {
+        "<leader>xr",
+        "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
+        desc = "LSP references / definitions",
+      },
       -- Walk the Trouble list from anywhere, without focusing the panel.
       {
         "[x",
-        function() require("trouble").prev({ skip_groups = true, jump = true }) end,
+        function()
+          require("trouble").prev({ skip_groups = true, jump = true })
+        end,
         desc = "Previous Trouble item",
       },
       {
         "]x",
-        function() require("trouble").next({ skip_groups = true, jump = true }) end,
+        function()
+          require("trouble").next({ skip_groups = true, jump = true })
+        end,
         desc = "Next Trouble item",
       },
     },
@@ -453,12 +520,32 @@ return {
     event = "BufReadPre",
     opts = {},
     keys = {
-      { "<leader>qs", function() require("persistence").load() end, desc = "Restore session (this directory)" },
-      { "<leader>qS", function() require("persistence").select() end, desc = "Select a session" },
-      { "<leader>ql", function() require("persistence").load({ last = true }) end, desc = "Restore last session" },
+      {
+        "<leader>qs",
+        function()
+          require("persistence").load()
+        end,
+        desc = "Restore session (this directory)",
+      },
+      {
+        "<leader>qS",
+        function()
+          require("persistence").select()
+        end,
+        desc = "Select a session",
+      },
+      {
+        "<leader>ql",
+        function()
+          require("persistence").load({ last = true })
+        end,
+        desc = "Restore last session",
+      },
       {
         "<leader>qd",
-        function() require("persistence").stop() end,
+        function()
+          require("persistence").stop()
+        end,
         desc = "Don't save this session on exit",
       },
     },

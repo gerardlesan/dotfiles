@@ -59,7 +59,7 @@ return {
         -- Silence rules that duplicate ruff, so a single problem is not reported
         -- twice by two servers with different wording.
         diagnosticSeverityOverrides = {
-          reportUnusedImport = "none",   -- ruff F401
+          reportUnusedImport = "none", -- ruff F401
           reportUnusedVariable = "none", -- ruff F841
           reportUnusedFunction = "none",
           reportUnusedClass = "none",

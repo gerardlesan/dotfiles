@@ -70,10 +70,10 @@ local servers = {
   -- misconfiguration.
 
   -- ── Config, data and markup ──────────────────────────────────────────────
-  "jsonls",   -- JSON, with schema validation from SchemaStore
-  "yamlls",   -- YAML, likewise
-  "taplo",    -- TOML (Cargo.toml, pyproject.toml)
-  "bashls",   -- shell scripts
+  "jsonls", -- JSON, with schema validation from SchemaStore
+  "yamlls", -- YAML, likewise
+  "taplo", -- TOML (Cargo.toml, pyproject.toml)
+  "bashls", -- shell scripts
   "marksman", -- markdown: link checking, heading navigation
   "html",
   "cssls",
@@ -119,12 +119,12 @@ return {
     opts = {
       ensure_installed = {
         -- Formatters (see lua/plugins/format.lua)
-        "stylua",             -- Lua
-        "prettierd",          -- TS/JS/JSON/YAML/CSS/HTML/Markdown — daemon, fast
-        "shfmt",              -- shell
+        "stylua", -- Lua
+        "prettierd", -- TS/JS/JSON/YAML/CSS/HTML/Markdown — daemon, fast
+        "shfmt", -- shell
         -- Linters (see lua/plugins/lint.lua)
-        "markdownlint-cli2",  -- markdown
-        "shellcheck",         -- shell
+        "markdownlint-cli2", -- markdown
+        "shellcheck", -- shell
         -- Note: `ruff` covers both formatting and linting for Python and is
         -- installed as an LSP above, so it is not repeated here.
         -- Note: `rustfmt` and `clippy` come from rustup, not mason — see
@@ -238,13 +238,27 @@ return {
 
           -- ── Navigation. Uses the picker so multiple results are browsable
           --    with a preview, instead of dumping you in a quickfix list.
-          map("gd", function() Snacks.picker.lsp_definitions() end, "Go to definition")
-          map("gD", function() Snacks.picker.lsp_declarations() end, "Go to declaration")
-          map("gr", function() Snacks.picker.lsp_references() end, "References")
-          map("gI", function() Snacks.picker.lsp_implementations() end, "Go to implementation")
-          map("gy", function() Snacks.picker.lsp_type_definitions() end, "Go to type definition")
-          map("<leader>ss", function() Snacks.picker.lsp_symbols() end, "Document symbols")
-          map("<leader>sS", function() Snacks.picker.lsp_workspace_symbols() end, "Workspace symbols")
+          map("gd", function()
+            Snacks.picker.lsp_definitions()
+          end, "Go to definition")
+          map("gD", function()
+            Snacks.picker.lsp_declarations()
+          end, "Go to declaration")
+          map("gr", function()
+            Snacks.picker.lsp_references()
+          end, "References")
+          map("gI", function()
+            Snacks.picker.lsp_implementations()
+          end, "Go to implementation")
+          map("gy", function()
+            Snacks.picker.lsp_type_definitions()
+          end, "Go to type definition")
+          map("<leader>ss", function()
+            Snacks.picker.lsp_symbols()
+          end, "Document symbols")
+          map("<leader>sS", function()
+            Snacks.picker.lsp_workspace_symbols()
+          end, "Workspace symbols")
 
           -- ── Documentation
           -- `K` is Vim's traditional "look up the thing under the cursor", now
@@ -332,8 +346,7 @@ return {
           local client = vim.lsp.get_client_by_id(event.data.client_id)
           if client and client.initialized == false then
             vim.notify(
-              ("Language server %s exited before initialising.\nCheck `:LspLog`.")
-                :format(client.name),
+              ("Language server %s exited before initialising.\nCheck `:LspLog`."):format(client.name),
               vim.log.levels.WARN,
               { title = "LSP" }
             )

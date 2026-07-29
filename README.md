@@ -7,7 +7,7 @@ and the terminal.
 Developed on Windows 11, designed to move to Linux with one script.
 
 ```
-Neovim 0.12+ · lazy.nvim · 51 plugins · ~270 ms startup · zero vimscript
+Neovim 0.12+ · lazy.nvim · 52 plugins · ~270 ms startup · zero vimscript
 ```
 
 ---
@@ -37,6 +37,14 @@ dashboard.
 - **Red owns control flow, not data.** Keywords, operators, borders, the cursor and
   the mode indicator are red; strings stay green and numbers orange. A config where
   everything is one hue photographs well and is miserable to read code in.
+- **Types are "marked" individually, VS Code style, and never italic.** Most themes
+  collapse every kind of type onto one `Type` colour, so a struct, an enum, a trait,
+  a type alias and a generic parameter all look identical — the highlighting tells
+  you "this is a type" and nothing more. This config styles the language server's
+  *semantic tokens* instead, so each kind gets its own hue, declarations are bold,
+  `mut` bindings are underlined and `unsafe` gets an undercurl. The mapping was
+  derived by dumping the 47 groups rust-analyzer actually emits, not guessed.
+  See `lua/config/palette.lua` (`M.types`) to retune.
 - **No key is both a mapping and a prefix.** That combination forces Neovim to wait
   out `timeoutlen` on every keystroke beneath it. Enforced across all 168 leader
   mappings — there is a checker script in the repo history.
@@ -147,6 +155,9 @@ dotfiles/
     │   │   ├── keymaps.lua    global keymaps
     │   │   ├── autocmds.lua   event-driven behaviour
     │   │   └── lazy.lua       plugin-manager bootstrap
+    │   ├── util/
+    │   │   ├── incsel.lua     incremental selection (upstream module was deleted)
+    │   │   └── folds.lua      treesitter-highlighted foldtext + line count
     │   └── plugins/
     │       ├── colorscheme.lua  snacks.lua    ui.lua       explorer.lua
     │       ├── editor.lua       treesitter.lua lsp.lua     completion.lua
@@ -181,6 +192,9 @@ a plugin's keybinding | that plugin's file in `lua/plugins/` (keeps it lazy-load
 a language server's settings | `nvim/after/lsp/<server>.lua`
 indent width for a language | `nvim/after/ftplugin/<filetype>.lua`
 which formatter runs | `nvim/lua/plugins/format.lua`
+per-type-kind colours (struct vs enum vs trait) | `nvim/lua/config/palette.lua` → `M.types`
+italics on/off | `nvim/lua/config/palette.lua` → `M.style.italic_comments`
+rainbow brackets, folds, sticky context, incremental selection | the `ts` options table at the top of `nvim/lua/plugins/treesitter.lua`
 add/remove a plugin | the relevant `lua/plugins/*.lua`, then `:Lazy sync`
 
 Machine-specific overrides go in `nvim/lua/config/local.lua`, which is

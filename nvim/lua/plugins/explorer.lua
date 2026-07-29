@@ -188,8 +188,7 @@ return {
           -- Open with the OS default application (image viewer, PDF reader).
           ["O"] = function(state)
             local path = state.tree:get_node().path
-            local opener = vim.fn.has("win32") == 1 and "explorer"
-              or (vim.fn.has("mac") == 1 and "open" or "xdg-open")
+            local opener = vim.fn.has("win32") == 1 and "explorer" or (vim.fn.has("mac") == 1 and "open" or "xdg-open")
             vim.fn.jobstart({ opener, path }, { detach = true })
           end,
 
@@ -228,9 +227,19 @@ return {
           hide_hidden = false, -- Windows "hidden" attribute
           -- These, though, are pure noise and are hidden outright.
           hide_by_name = {
-            "node_modules", "__pycache__", ".git", ".DS_Store",
-            "thumbs.db", ".mypy_cache", ".ruff_cache", ".pytest_cache",
-            ".venv", "target", "dist", ".next", ".turbo",
+            "node_modules",
+            "__pycache__",
+            ".git",
+            ".DS_Store",
+            "thumbs.db",
+            ".mypy_cache",
+            ".ruff_cache",
+            ".pytest_cache",
+            ".venv",
+            "target",
+            "dist",
+            ".next",
+            ".turbo",
           },
           never_show = { ".DS_Store", "thumbs.db" },
         },
@@ -281,7 +290,13 @@ return {
     lazy = false,
     keys = {
       { "-", "<cmd>Oil<cr>", desc = "Open parent directory (oil)" },
-      { "<leader>fo", function() require("oil").toggle_float() end, desc = "Oil (floating)" },
+      {
+        "<leader>fo",
+        function()
+          require("oil").toggle_float()
+        end,
+        desc = "Oil (floating)",
+      },
     },
     opts = {
       -- Take over `:edit <directory>`. neo-tree deliberately does not

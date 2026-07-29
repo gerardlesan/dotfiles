@@ -200,7 +200,11 @@ return {
           path = {
             -- Complete paths relative to the current file, not the cwd, which is
             -- what you mean when typing an import or an include.
-            opts = { get_cwd = function(_) return vim.fn.expand("%:p:h") end },
+            opts = {
+              get_cwd = function(_)
+                return vim.fn.expand("%:p:h")
+              end,
+            },
           },
         },
       },

@@ -35,7 +35,11 @@ return {
       -- reports as broken. Ignore those paths rather than living with red files.
       customTags = {
         "!reference sequence", -- GitLab CI
-        "!Ref", "!GetAtt", "!Sub", "!Join", "!Select", -- CloudFormation
+        "!Ref",
+        "!GetAtt",
+        "!Sub",
+        "!Join",
+        "!Select", -- CloudFormation
       },
     },
   },

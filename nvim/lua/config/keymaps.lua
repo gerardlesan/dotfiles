@@ -231,7 +231,7 @@ local function diagnostic_jump(count, severity)
     vim.diagnostic.jump({
       count = count,
       float = true, -- pop the message up on arrival, so you can read it without
-                    -- a second keystroke
+      -- a second keystroke
       severity = severity and vim.diagnostic.severity[severity] or nil,
     })
   end

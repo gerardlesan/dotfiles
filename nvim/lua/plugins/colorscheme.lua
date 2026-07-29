@@ -17,6 +17,7 @@
 
 local P = require("config.palette")
 local c = P.colors
+local t = P.types -- per-type-kind colours; see the long note in palette.lua
 
 return {
   {
@@ -43,15 +44,16 @@ return {
       terminal_colors = true,
 
       styles = {
-        -- Italic comments read as "this is prose, not code" and is the one place
-        -- italics genuinely help. Requires an italic font face — JetBrains Mono
-        -- Nerd Font has one.
-        comments = { italic = true },
+        -- Italics are confined to prose. Toggle the whole policy in
+        -- lua/config/palette.lua (M.style.italic_comments).
+        comments = { italic = P.style.italic_comments },
         -- Keywords bold rather than italic: they are the red structural anchors of
         -- the file, and bold reinforces that better than a slant.
         keywords = { bold = true, italic = false },
-        functions = {},
-        variables = {},
+        -- Explicitly non-italic. Tokyonight italicises some of these by default,
+        -- and `on_highlights` below clears the rest.
+        functions = { italic = false },
+        variables = { italic = false },
         -- Sidebars and floats sit on the darker background, which visually
         -- separates chrome from content.
         sidebars = "dark",
@@ -60,8 +62,16 @@ return {
 
       -- Windows treated as "sidebar" and given the darker background.
       sidebars = {
-        "qf", "help", "neo-tree", "aerial", "neotest-summary",
-        "trouble", "lazy", "mason", "notify", "spectre_panel",
+        "qf",
+        "help",
+        "neo-tree",
+        "aerial",
+        "neotest-summary",
+        "trouble",
+        "lazy",
+        "mason",
+        "notify",
+        "spectre_panel",
       },
 
       -- Dim windows that do not have focus. Off: with a global statusline and
@@ -166,7 +176,8 @@ return {
         -- all the same colour as the keywords is unreadable.
         hl.String = { fg = c.green }
         hl["@string"] = { fg = c.green }
-        hl["@string.documentation"] = { fg = c.green, italic = true }
+        -- A doc-string is prose, so it follows the comment italics policy.
+        hl["@string.documentation"] = { fg = c.green, italic = P.style.italic_comments }
         hl["@string.escape"] = { fg = c.teal, bold = true }
         hl["@string.regexp"] = { fg = c.teal }
 
@@ -186,27 +197,177 @@ return {
         hl["@function.call"] = { fg = c.yellow }
         hl["@function.method"] = { fg = c.yellow }
         hl["@function.method.call"] = { fg = c.yellow }
-        hl["@function.builtin"] = { fg = c.yellow, italic = true }
+        -- Bold, not italic: a builtin is still a real function.
+        hl["@function.builtin"] = { fg = c.yellow, bold = true, italic = false }
         hl["@constructor"] = { fg = c.orange, bold = true }
 
         -- Types stay cool — the one place blue-ish colour earns its keep, because
         -- it distinguishes "what kind of thing" from "what it does".
-        hl.Type = { fg = c.cyan }
-        hl["@type"] = { fg = c.cyan }
-        hl["@type.builtin"] = { fg = c.cyan, italic = true }
-        hl["@type.definition"] = { fg = c.cyan, bold = true }
-        hl["@module"] = { fg = c.teal }
-        hl["@namespace"] = { fg = c.teal }
+        --
+        -- These are the TREESITTER fallbacks. Where a language server provides
+        -- semantic tokens (Rust, TypeScript, Go, C), the far more specific
+        -- `@lsp.*` groups in the section below take over and split "type" into
+        -- struct / enum / trait / alias / generic.
+        hl.Type = { fg = t.struct }
+        hl["@type"] = { fg = t.struct }
+        hl["@type.builtin"] = { fg = t.struct, bold = true, italic = false }
+        hl["@type.definition"] = { fg = t.struct, bold = true }
+        hl["@type.qualifier"] = { fg = c.accent, bold = true }
+        hl["@module"] = { fg = t.namespace }
+        hl["@namespace"] = { fg = t.namespace }
 
         hl["@variable"] = { fg = c.fg }
-        hl["@variable.builtin"] = { fg = c.accent_dim, italic = true }
-        hl["@variable.parameter"] = { fg = c.fg_dark, italic = true }
+        hl["@variable.builtin"] = { fg = c.accent_dim, bold = true, italic = false }
+        hl["@variable.parameter"] = { fg = c.fg_dark, italic = false }
         hl["@variable.member"] = { fg = c.teal }
         hl["@property"] = { fg = c.teal }
-        hl["@attribute"] = { fg = c.magenta }
+        hl["@attribute"] = { fg = t.attribute }
+        hl["@attribute.builtin"] = { fg = t.attribute }
+        hl["@label"] = { fg = t.lifetime }
 
-        hl.Comment = { fg = c.comment, italic = true }
-        hl["@comment"] = { fg = c.comment, italic = true }
+        hl.Comment = { fg = c.comment, italic = P.style.italic_comments }
+        hl["@comment"] = { fg = c.comment, italic = P.style.italic_comments }
+        hl["@comment.documentation"] = { fg = c.comment, italic = P.style.italic_comments }
+
+        -- ══════════════════════════════════════════════════════════════════
+        -- LSP SEMANTIC TOKENS — "marked types", VS Code style
+        -- ══════════════════════════════════════════════════════════════════
+        -- Treesitter parses the *text*; a language server understands the
+        -- *program*. Only the server knows that `Foo` is a trait rather than a
+        -- struct, or that this `x` is the declaration and that one is a use. It
+        -- reports that as semantic tokens, which Neovim paints as three layers of
+        -- highlight group, in ascending priority:
+        --
+        --   @lsp.type.<kind>            struct, enum, interface, typeAlias, ...
+        --   @lsp.mod.<modifier>         declaration, unsafe, async, constant, ...
+        --   @lsp.typemod.<kind>.<mod>   the specific combination
+        --
+        -- Because they are separate extmarks they MERGE: a group that sets only
+        -- `bold` keeps the colour from the layer beneath. That is what makes the
+        -- modifier rules below work without having to restate every colour.
+        --
+        -- The kinds mapped here were obtained by dumping the extmarks
+        -- rust-analyzer actually produces for a representative Rust file — 47
+        -- distinct groups, of which 26 were unstyled by default. Anything not
+        -- emitted in practice is omitted rather than guessed at.
+        --
+        -- These are keyed by ROLE, not by language, so `gopls`, `clangd` and
+        -- `vtsls` inherit the same scheme for the kinds they report.
+
+        -- ── Type kinds: the whole point of this section ───────────────────
+        hl["@lsp.type.struct"] = { fg = t.struct }
+        hl["@lsp.type.class"] = { fg = t.struct } -- TS/Python/Java equivalent
+        hl["@lsp.type.enum"] = { fg = t.enum }
+        hl["@lsp.type.interface"] = { fg = t.trait } -- a Rust trait
+        hl["@lsp.type.typeAlias"] = { fg = t.alias, underline = true }
+        hl["@lsp.type.typeParameter"] = { fg = t.generic, bold = true }
+        hl["@lsp.type.union"] = { fg = t.union, bold = true, underline = true }
+        hl["@lsp.type.builtinType"] = { fg = t.struct, bold = true }
+        hl["@lsp.type.generic"] = { fg = t.generic }
+
+        -- ── Values ───────────────────────────────────────────────────────
+        hl["@lsp.type.enumMember"] = { fg = t.enum_member }
+        hl["@lsp.type.const"] = { fg = t.constant, bold = true }
+        hl["@lsp.type.static"] = { fg = t.constant, bold = true }
+        hl["@lsp.type.variable"] = { fg = c.fg }
+        hl["@lsp.type.parameter"] = { fg = c.fg_dark }
+        hl["@lsp.type.property"] = { fg = c.teal }
+        hl["@lsp.type.field"] = { fg = c.teal }
+
+        -- ── Callables ────────────────────────────────────────────────────
+        hl["@lsp.type.function"] = { fg = c.yellow }
+        hl["@lsp.type.method"] = { fg = c.yellow }
+        -- Macros join the function family but bold, because they generate code.
+        -- (Default was the same cyan as `struct`, which was actively misleading.)
+        hl["@lsp.type.macro"] = { fg = t.macro, bold = true }
+        hl["@lsp.type.decorator"] = { fg = t.attribute }
+
+        -- ── Keywords ─────────────────────────────────────────────────────
+        hl["@lsp.type.keyword"] = { fg = c.accent, bold = true }
+        -- `self` / `Self`. Was italic by default; a keyword is not provisional.
+        hl["@lsp.type.selfKeyword"] = { fg = c.accent, bold = true, italic = false }
+        hl["@lsp.type.selfTypeKeyword"] = { fg = t.struct, bold = true }
+
+        -- ── Quiet scaffolding ────────────────────────────────────────────
+        -- Module paths recede so the type at the end of them stands out:
+        -- in `std::collections::HashMap`, only `HashMap` should draw the eye.
+        hl["@lsp.type.namespace"] = { fg = t.namespace }
+        -- `'a`. An annotation, not a type — kept in the red family but quiet.
+        hl["@lsp.type.lifetime"] = { fg = t.lifetime, italic = false }
+        -- The `#[` and `]` of an attribute, and the attribute body.
+        hl["@lsp.type.attributeBracket"] = { fg = t.attribute }
+        hl["@lsp.mod.attribute"] = { fg = t.attribute }
+        hl["@lsp.typemod.namespace.attribute"] = { fg = t.attribute }
+        hl["@lsp.typemod.generic.attribute"] = { fg = t.attribute }
+        hl["@lsp.typemod.attributeBracket.attribute"] = { fg = t.attribute }
+
+        -- ── Modifiers: colour-free, so they COMBINE with the kind above ──
+
+        -- THE headline VS Code behaviour: a declaration is bold, a use is not. So
+        -- `fn greet` and `struct Person` are visually the definition, while every
+        -- later mention of them is plain. Sets no `fg`, so each kind keeps its hue.
+        hl["@lsp.mod.declaration"] = { bold = true }
+        hl["@lsp.mod.definition"] = { bold = true }
+
+        -- Safety. `unsafe` blocks, unsafe fns and union field reads get an
+        -- undercurl in the error colour — the same visual language as a
+        -- diagnostic, because that is exactly the weight it deserves in Rust.
+        hl["@lsp.mod.unsafe"] = { sp = c.error, undercurl = true }
+        hl["@lsp.typemod.keyword.unsafe"] = { fg = c.error, bold = true }
+        hl["@lsp.typemod.function.unsafe"] = { sp = c.error, undercurl = true }
+        hl["@lsp.typemod.operator.unsafe"] = { sp = c.error, undercurl = true }
+
+        -- Control flow gets the accent even where the server calls it a keyword,
+        -- so `match`, `return`, `break`, `?` all read as structure.
+        hl["@lsp.typemod.keyword.controlFlow"] = { fg = c.accent, bold = true }
+        hl["@lsp.mod.controlFlow"] = { fg = c.accent, bold = true }
+
+        -- `async` / `await`: structure, and worth spotting at a glance.
+        hl["@lsp.mod.async"] = { fg = c.accent, bold = true }
+        hl["@lsp.typemod.keyword.async"] = { fg = c.accent, bold = true }
+        hl["@lsp.typemod.function.async"] = { fg = c.yellow, bold = true }
+
+        -- Anything the server considers constant reads as a constant.
+        hl["@lsp.mod.constant"] = { fg = t.constant }
+        hl["@lsp.typemod.keyword.constant"] = { fg = c.accent, bold = true }
+        hl["@lsp.typemod.variable.constant"] = { fg = t.constant, bold = true }
+
+        -- A `mut` binding is underlined. Mutability is the single most
+        -- consequential property of a Rust binding and is otherwise invisible
+        -- after the declaration line.
+        hl["@lsp.typemod.variable.mutable"] = { underline = true }
+        hl["@lsp.typemod.selfKeyword.mutable"] = { underline = true }
+        hl["@lsp.mod.mutable"] = { underline = true }
+
+        -- Deprecated APIs get struck through, which is the one place a text
+        -- decoration is genuinely worth more than a colour.
+        hl["@lsp.mod.deprecated"] = { strikethrough = true }
+
+        -- Declared-but-unused, where the server reports it.
+        hl["@lsp.mod.unused"] = { fg = c.fg_gutter }
+
+        -- Library vs first-party code. Kept deliberately UNSET (empty table) so
+        -- standard-library types look identical to your own — distinguishing them
+        -- sounds useful and in practice just makes `Vec` and `MyVec` inconsistent.
+        -- Uncomment to dim third-party symbols instead:
+        -- hl["@lsp.mod.library"] = { fg = c.fg_dark }
+        hl["@lsp.mod.defaultLibrary"] = {}
+
+        -- Inlay hints are the LSP's inferred types shown inline. Not italic:
+        -- these are type names, and this config's rule is that type names are
+        -- never slanted. Distinguished from real code by colour and background.
+        hl.LspInlayHint = { fg = c.comment, bg = c.bg_alt, italic = false }
+
+        -- ══════════════════════════════════════════════════════════════════
+        -- RAINBOW DELIMITERS
+        -- ══════════════════════════════════════════════════════════════════
+        -- Nesting depth by colour. Genuinely useful in Rust, where a single line
+        -- can hold `Result<Vec<HashMap<String, Box<dyn Error>>>, io::Error>` and
+        -- matching the closing angle brackets by eye is otherwise guesswork.
+        -- Configured in lua/plugins/treesitter.lua; palette in palette.lua.
+        for _, level in ipairs(P.rainbow) do
+          hl["RainbowDelimiter" .. level.name] = { fg = level.color }
+        end
 
         -- ── Chrome: the red frame around everything ────────────────────────
         hl.CursorLineNr = { fg = c.accent, bold = true }
@@ -267,7 +428,8 @@ return {
         hl.LspReferenceRead = { bg = c.bg_sel }
         hl.LspReferenceWrite = { bg = c.bg_sel, underline = true }
         hl.LspSignatureActiveParameter = { fg = c.accent, bold = true }
-        hl.LspInlayHint = { fg = c.fg_gutter, bg = "NONE", italic = true }
+        -- LspInlayHint is set in the semantic-tokens section below, where it sits
+        -- with the rest of the type-rendering rules.
 
         -- ── Plugin surfaces ────────────────────────────────────────────────
         -- snacks.indent: the guides are near-invisible, the *active scope* guide
@@ -343,9 +505,22 @@ return {
       -- pins the exact values.
       local t = c.terminal
       local ansi = {
-        t.black, t.red, t.green, t.yellow, t.blue, t.magenta, t.cyan, t.white,
-        t.bright_black, t.bright_red, t.bright_green, t.bright_yellow,
-        t.bright_blue, t.bright_magenta, t.bright_cyan, t.bright_white,
+        t.black,
+        t.red,
+        t.green,
+        t.yellow,
+        t.blue,
+        t.magenta,
+        t.cyan,
+        t.white,
+        t.bright_black,
+        t.bright_red,
+        t.bright_green,
+        t.bright_yellow,
+        t.bright_blue,
+        t.bright_magenta,
+        t.bright_cyan,
+        t.bright_white,
       }
       for i, colour in ipairs(ansi) do
         vim.g["terminal_color_" .. (i - 1)] = colour
