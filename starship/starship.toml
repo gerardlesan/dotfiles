@@ -1,0 +1,235 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STARSHIP PROMPT — fire
+#
+# One hue family, orange-leaning: dark coals under the prompt, hot orange flame
+# above it, and a single red-hot step reserved for the two things that must never
+# be missed. The terminal background is a deep dark violet (#1a1820, from
+# nvim/lua/config/palette.lua), which is the coldest colour available here — so the
+# whole prompt reads as fire sitting on cold ground. Information is carried by
+# TEMPERATURE (how far up the flame a colour sits), never by switching to a
+# foreign hue.
+#
+# THE FLAME, coldest to hottest, and what each step is for:
+#
+#   coal    #742110  fill behind user@host        1.65:1 vs terminal bg
+#   ember   #a8400f  fill behind the path         2.85:1 vs bg, 1.73:1 vs coal
+#   smoke   #b8755a  command duration             4.79:1  (the one desaturated step)
+#   sep     #e0906a  the `@`                      4.25:1 on coal
+#   flame   #ff9a3c  git branch, prompt arrow     8.31:1
+#   gold    #ffb84d  background-job count        10.22:1
+#   amber   #ffcf9e  username                     7.46:1 on coal
+#   cream   #fff1de  the path — brightest thing in the prompt
+#
+#   fire    #ff4620  `phoenix`, and nothing else  3.13:1 on coal
+#   redhot  #ff2d0f  the arrow after a failed command
+#
+# The last two are the only RED steps in an otherwise orange scheme, which is what
+# makes them stand out now that the theme runs hot: everything else is amber to
+# orange, so a saturated red reads as "this one is different". `phoenix` therefore
+# still owns a bright fire red, exactly as intended — it is just no longer
+# competing with a prompt full of scarlet. The arrow pair is orange-on-success /
+# red-on-failure: a 1.76:1 luminance gap PLUS a hue change, where the previous
+# all-scarlet version could only manage 1.12:1 and no hue change at all.
+#
+# Every ratio is computed WCAG relative luminance against #1a1820, not eyeballed —
+# an earlier attempt had fills at 1.15:1 that simply vanished into the background.
+# If you retune, re-check: the failure mode of a one-family scheme is that two
+# steps collapse into each other and the prompt silently loses a distinction.
+#
+# ── ICON METRICS, WHICH IS A REAL CONSTRAINT AND NOT A DETAIL ─────────────────
+#
+# Nerd Font glyphs are all one cell wide, but they are NOT drawn at one size. The
+# previous icon set mixed Font Awesome 6 glyphs (fa-house, fa-lock: bounding box
+# -102..822, i.e. 924 units of a 1000-unit em) with Font Awesome 4 and dev glyphs
+# (dev-git_branch: -41..761, 802 units). That is a 15% size difference between two
+# icons sitting six characters apart, which is exactly why the house looked
+# oversized and misaligned next to the branch.
+#
+# So every glyph below was chosen by MEASURING it — reading `hmtx` for the advance
+# and `glyf` for the bounding box out of the installed
+# JetBrainsMonoNerdFont_Regular.ttf. The rule now enforced:
+#
+#     advance == 600 (exactly one cell, same as `M`)
+#     bounding box within  -78..-56  /  776..798
+#
+# That is a 2.2%-of-em spread — about half a pixel at a normal terminal size, where
+# the old set spread 35%. Everything comes from Material Design Icons (`md-*`),
+# whose 1849-glyph cluster at exactly (-56, 776) is the largest metrically
+# identical set in the font; only `md-lock_outline` sits at (-78, 798), 22 units
+# off, which is imperceptible and worth it for a real padlock.
+#
+# There is NO house glyph in that band — `md-home` is (5, 715), noticeably smaller
+# than everything else, and `md-home_circle_outline` is a circle first and a house
+# second. So `~` is used for the home directory: it is the conventional symbol for
+# exactly that, costs one cell, and cannot be the wrong size. A same-size icon set
+# was worth more than a house.
+#
+# If you add an icon, measure it first:
+#   python3 -c "from fontTools.ttLib import TTFont; \
+#   f=TTFont('/usr/local/share/fonts/j/JetBrainsMonoNerdFont_Regular.ttf'); n='md-flash'; \
+#   print(f['hmtx'][n], f['glyf'][n].yMin, f['glyf'][n].yMax)"
+#
+# Glyphs are written as \uXXXX / \UXXXXXXXX escapes, never pasted literally — same
+# rule as palette.lua, because PUA characters get eaten by editors, git filters and
+# clipboards, leaving an empty string. TOML decodes these only inside
+# "double-quoted" strings, which is why nothing here uses 'single quotes'. Material
+# Design glyphs live above U+FFFF, so they need the 8-digit \U form.
+#
+# ── WHAT THIS PROMPT DELIBERATELY DOES NOT SHOW ──────────────────────────────
+#
+#   * git file counts. `git_status` is gone entirely — no " 5", no stash or
+#     untracked counters. The branch name is the part you navigate by; the counts
+#     were a number to decode on every single prompt. `git status` answers it on
+#     demand. (If you ever want just a dirty marker back, that is one line:
+#     [git_status] with format = "[*](fg:flame)" and everything else unset.)
+#   * language and toolchain icons. Removed for the same reason: inside a project
+#     you already know what language it is, so the icon repeated it every prompt.
+#   * time of day, and the version number of anything.
+#
+#   Icons that EARN their cell are kept: the branch, the read-only padlock, the
+#   media-directory markers, the jobs bolt and the duration clock. Each tells you
+#   something the text beside it does not.
+#
+# ── OTHER DECISIONS ──────────────────────────────────────────────────────────
+#
+#   * TRANSIENT. On submit the prompt collapses to a bare arrow, so scrollback is
+#     commands and output. Not configurable here — it needs `enable_transience` and
+#     `starship_transient_prompt_func` in ~/.config/fish/config.fish. If prompts
+#     stop collapsing, that file regressed, not this one.
+#   * TWO LINES, arrow on the second, so the typing column never moves.
+#   * POWERLINE FILLS STOP AFTER THE PATH. user@host and path always render, so
+#     their dividers always mean something. Everything after is plain coloured text,
+#     because starship cannot make a divider conditional on the NEXT module
+#     producing output — a filled segment with no content leaves a stub of colour.
+#   * ON DIVIDERS, `fg:` IS THE SEGMENT IT COMES FROM, `bg:` THE ONE IT LEADS INTO.
+#     The cap (\uE0B6) and the arrow (\uE0B0) are filled shapes drawn in the FOREGROUND colour;
+#     setting `bg:` on the leading cap painted it in the terminal's default white
+#     and welded a pale blob to the front of the prompt.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+palette = "fire"
+
+# Blank line above each prompt — what makes a screen of collapsed transient
+# prompts read as a list rather than a wall.
+add_newline = true
+
+format = """
+[\uE0B6](fg:coal)\
+$username\
+[@](fg:sep bg:coal)\
+$hostname\
+[\uE0B0](fg:coal bg:ember)\
+$directory\
+[\uE0B0](fg:ember)\
+$git_branch\
+$jobs\
+$cmd_duration\
+$line_break\
+$character\
+"""
+
+# ── The flame ─────────────────────────────────────────────────────────────────
+# Retune here. No hex belongs anywhere below this block. These are NOT palette.lua
+# values: that palette spreads red across pink (#f7768e) and crimson (#c53b53) and
+# reserves warm hues for data, which is right for syntax highlighting and wrong for
+# a prompt meant to read as one fire.
+[palettes.fire]
+coal = "#742110"    # surface: user@host
+ember = "#a8400f"   # surface: path
+smoke = "#b8755a"   # duration — the only desaturated step, so elapsed time recedes
+sep = "#e0906a"     # the `@`
+flame = "#ff9a3c"   # git branch, prompt arrow
+gold = "#ffb84d"    # job count
+amber = "#ffcf9e"   # username
+cream = "#fff1de"   # path
+fire = "#ff4620"    # hostname — one of only two reds
+redhot = "#ff2d0f"  # failure — the other one
+
+# ── Identity ──────────────────────────────────────────────────────────────────
+# Amber user, fire-red host, dim `@` between them. The host is one of two red steps
+# in an orange prompt, so `phoenix` is the one word that cannot be confused with
+# anything else — the point being that a shell on some other machine looks wrong
+# instantly. Give a second host its own step rather than sharing this one.
+
+[username]
+show_always = true
+style_user = "bg:coal fg:amber bold"
+style_root = "bg:coal fg:redhot bold"    # root borrows the failure colour, deliberately
+format = "[$user]($style)"
+
+[hostname]
+ssh_only = false
+format = "[$ssh_symbol$hostname]($style)"
+style = "bg:coal fg:fire bold"
+ssh_symbol = "\U000F0342 "               # md-login — flags a remote session before the colour does
+
+[directory]
+style = "bg:ember fg:cream bold"
+format = "[ $path$read_only ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+truncate_to_repo = true                  # inside a repo, paths are relative to its root
+read_only = " \U000F0341"                # md-lock_outline
+read_only_style = "bg:ember fg:amber"
+home_symbol = "~"                        # not a house glyph — see the icon-metrics note
+
+# Icons for the media directories. These ANNOTATE the name, they do not replace it:
+# the preset substituted the icon FOR the word, so ~/Downloads rendered as a bare
+# glyph and the one piece of text that said where you were was gone. All five are
+# md-file_*_outline, sharing one silhouette and one bounding box, so a row of them
+# reads as a set rather than five borrowed icons.
+[directory.substitutions]
+"Documents" = "\U000F09EE Documents"     # md-file_document_outline
+"Downloads" = "\U000F0966 Downloads"     # md-file_download_outline
+"Music" = "\U000F0E2A Music"             # md-file_music_outline
+"Pictures" = "\U000F0EB0 Pictures"       # md-file_image_outline
+"Videos" = "\U000F0E2C Videos"           # md-file_video_outline
+
+# ── Git ───────────────────────────────────────────────────────────────────────
+# Branch only. See the header for why the file counters are gone.
+[git_branch]
+symbol = "\U000F062C "                   # md-source_branch
+style = "fg:flame"
+format = " [$symbol$branch]($style)"
+
+# ── Status ────────────────────────────────────────────────────────────────────
+
+# Background jobs are easy to start, easy to forget, expensive to forget. Gold is
+# the brightest step on the flame, because this is the one thing here you might
+# otherwise walk away from.
+[jobs]
+symbol = "\U000F0241"                    # md-flash
+style = "fg:gold bold"
+number_threshold = 1
+format = " [$symbol$number]($style)"
+
+# Replaces the preset's clock. Fires only past 2s, so it is absent from exactly the
+# commands where it would be clutter, and it is the only desaturated colour here so
+# it never competes with the path.
+[cmd_duration]
+min_time = 2_000
+style = "fg:smoke"
+format = " [\U000F0150 $duration]($style)"   # md-clock_outline
+
+# The second line. Orange when the last command succeeded, red-hot when it failed:
+# a hue change plus a 1.76:1 luminance gap, which is as unmistakable as this gets
+# without leaving the fire family.
+[character]
+success_symbol = "[❯](fg:flame)"
+error_symbol = "[❯](bold fg:redhot)"
+vicmd_symbol = "[❮](bold fg:gold)"       # points the other way: you are in normal mode
+
+# ── Deliberately off ──────────────────────────────────────────────────────────
+[time]
+disabled = true      # a timestamp on a prompt transience is about to collapse is noise twice over
+
+[os]
+disabled = true      # decoration on a single machine; the host colour already says where you are
+
+[battery]
+disabled = true      # a desktop; this would either never render or render a lie
+
+[package]
+disabled = true      # a version you can look up, and rarely the one you need

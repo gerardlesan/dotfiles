@@ -87,13 +87,26 @@ expect (see the `fd-find` note below).
 Both scripts back up an existing config with a timestamp before replacing it, and
 both are safe to re-run.
 
-### Ghostty
+### Ghostty and Starship (Linux only)
 
-The terminal config is a single file and is **not** in this repo:
+Two single-file configs live in this repo and are installed by `./install.sh`:
 
 ```
-~/.config/ghostty/config
+ghostty/config          ->  ~/.config/ghostty/config
+starship/starship.toml  ->  ~/.config/starship.toml
 ```
+
+Unlike `nvim/`, these are **copied, not symlinked**. Both get poked at live — a
+Ghostty reload here, a prompt colour retuned there — and a symlink would turn
+every such experiment into an uncommitted change in this repo. So the repo is what
+you install *from*: re-run `./install.sh` to push a new version out, and copy a
+local tweak back by hand when it is worth keeping. An existing file that differs is
+backed up with a timestamp first (`--force` skips the prompt).
+
+This step is Linux-only. `install.ps1` handles Neovim alone, and macOS is skipped
+because the Ghostty config here carries Linux-side window-decoration settings.
+
+Starship reads `$STARSHIP_CONFIG` if it is set, and the installer honours that.
 
 **The filename matters**: Ghostty reads exactly `config`, with no extension. A
 file called `config.ghostty` is ignored without a warning, which leaves the
@@ -108,8 +121,11 @@ repeated there with a pointer back. **Retune one, retune both.** Reload with
 
 Two settings there are worth knowing about: `resize-overlay = never`, because
 Ghostty's live size readout otherwise draws over a Neovim layout that is itself
-reflowing mid-drag, and `shell-integration = zsh`, which is what makes
-`window-inherit-working-directory` work.
+reflowing mid-drag, and `shell-integration = fish` (the login shell on this
+machine — `getent passwd $USER`), which is what makes
+`window-inherit-working-directory` work. Also note that plain `ctrl+arrow` is left
+unbound so Neovim's split-resize keys reach Neovim; Ghostty's own defaults for
+those actions are `ctrl+shift+arrow` and `ctrl+alt+arrow`.
 
 ---
 

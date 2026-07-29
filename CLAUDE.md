@@ -42,21 +42,34 @@ Do not trust environment claims in comments over what you can measure. If a
 comment and the machine disagree, verify, then fix the comment as part of your
 change.
 
-### The terminal is Ghostty, and its config is not in this repo
+### The terminal is Ghostty, and its config IS in this repo — but copied, not linked
 
-`~/.config/ghostty/config` — **no extension**. Ghostty reads exactly `config`
-and silently ignores any other filename; a stray `config.ghostty` is why this
-machine once ran a completely unconfigured terminal while Neovim rendered its own
-palette.
+`ghostty/config` → `~/.config/ghostty/config` — **no extension**. Ghostty reads
+exactly `config` and silently ignores any other filename; a stray `config.ghostty`
+is why this machine once ran a completely unconfigured terminal while Neovim
+rendered its own palette. `install.sh` warns if that stray file is still present.
 
-That file **mirrors** the hex values in `nvim/lua/config/palette.lua`. Ghostty
-cannot read Neovim's Lua, so the numbers are duplicated with a pointer comment
-back. **Retune one, retune the other** — `background`, `foreground`,
+`starship/starship.toml` → `~/.config/starship.toml` (or `$STARSHIP_CONFIG`) works
+the same way.
+
+**Both are copied by `install.sh`, not symlinked, and only on Linux.** That is
+deliberate: they are single files that get retuned live, and a symlink makes every
+such experiment an uncommitted change in this repo. The repo is what you install
+*from* — a local tweak has to be copied back by hand to survive. Consequence worth
+remembering: **the file in `~/.config` may be ahead of the repo copy.** Diff before
+assuming the repo version is what is running. `install.sh` backs up a differing
+target with a timestamp and prompts unless `--force`.
+
+`ghostty/config` **mirrors** the hex values in `nvim/lua/config/palette.lua`.
+Ghostty cannot read Neovim's Lua, so the numbers are duplicated with a pointer
+comment back. **Retune one, retune the other** — `background`, `foreground`,
 `cursor-color`, `selection-*`, and `palette = 0..15` from `M.colors.terminal`.
 
 Two settings there exist for reasons that live in this repo: `resize-overlay =
 never` (Ghostty's size readout otherwise draws over a reflowing Neovim layout
-mid-drag) and `shell-integration = zsh`.
+mid-drag) and `shell-integration = fish`, matching the login shell
+(`getent passwd $USER` → `/bin/fish`; note `$SHELL` in some spawned environments
+still reads `/usr/bin/zsh`).
 
 **Plain `CTRL+arrow` is deliberately unbound in Ghostty** — Neovim's split-resize
 keys need it. Ghostty's defaults use `CTRL+SHIFT+arrow` and `CTRL+ALT+arrow`.
@@ -80,6 +93,8 @@ dotfiles/
 ├── .stylua.toml                 Lua formatter config (repo root, not nvim/)
 ├── .gitattributes               LF everywhere except *.ps1 (CRLF)
 ├── .gitignore                   ignores lua/config/local.lua; NOT lazy-lock.json
+├── ghostty/config               terminal config; COPIED to ~/.config/ghostty/ (Linux)
+├── starship/starship.toml       prompt config; COPIED to ~/.config/ (Linux)
 ├── docs/
 │   ├── ADDING-A-LANGUAGE.md     five-edit worked example (Go) + how to add nvim-dap
 │   └── KEYBINDINGS.md           convenience copy; live keymap table is the truth
@@ -117,7 +132,8 @@ relevant one before adding a file there.
 ## 3. Commands
 
 ```bash
-./install.sh                    # symlink ~/.config/nvim -> nvim/, report missing tools
+./install.sh                    # symlink ~/.config/nvim -> nvim/, copy ghostty +
+                                # starship configs (Linux), report missing tools
 ./install.sh --tools            # ...and install system packages (apt/dnf/pacman/zypper/apk/brew)
 ./install.sh --tools --sync     # ...and install every plugin + treesitter parser
 ./install.sh --force            # replace an existing config without prompting
@@ -205,6 +221,8 @@ no registration step. A third level would need a third `import` line.
 | treesitter behaviour | the `ts` options table at the top of `lua/plugins/treesitter.lua` |
 | a mason-installed tool | `ensure_installed` in `lua/plugins/lsp.lua` |
 | an autocommand | `lua/config/autocmds.lua` |
+| a terminal setting | `ghostty/config`, then re-run `install.sh` to push it out |
+| the shell prompt | `starship/starship.toml`, same — it is copied, not linked |
 | machine-specific anything | `lua/config/local.lua` (git-ignored) — never commit it |
 
 `lua/plugins/*.lua` is one file per *concern*; `lua/plugins/lang/*.lua` is one

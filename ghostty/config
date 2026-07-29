@@ -1,0 +1,58 @@
+# Ghostty terminal configuration.
+#
+# Installed by ../install.sh as a symlink at ~/.config/ghostty/config.
+# THE FILENAME MATTERS: Ghostty reads exactly `config`, with no extension, and
+# silently ignores anything else — a stray `config.ghostty` is how this machine
+# once ran a completely unconfigured terminal.
+#
+# The colours below MIRROR nvim/lua/config/palette.lua (`M.colors`, and
+# `M.colors.terminal` for `palette = 0..15`). Ghostty cannot read Neovim's Lua, so
+# the hex values are duplicated by hand — retune one, retune the other.
+#
+# Two settings exist for reasons that live in the Neovim config:
+#   resize-overlay = never   Ghostty's size readout otherwise draws over a
+#                            reflowing Neovim layout mid-drag.
+#   CTRL+arrow is deliberately left unbound (Ghostty's own defaults use
+#   CTRL+SHIFT+arrow / CTRL+ALT+arrow) because Neovim's split-resize keys need it.
+#
+# Originally generated with https://ghostty.zerebos.com, then hand-tuned.
+
+background = #1a1820
+clipboard-paste-protection = false
+clipboard-read = allow
+confirm-close-surface = false
+copy-on-select = false
+cursor-color = #f7768e
+cursor-style = bar
+font-family = JetBrainsMono Nerd Font
+font-size = 12
+foreground = #cbc6d9
+gtk-titlebar-hide-when-maximized = true
+mouse-hide-while-typing = true
+palette = 0=#2f2739
+palette = 1=#f7768e
+palette = 2=#9ece6a
+palette = 3=#e0af68
+palette = 4=#7aa2f7
+palette = 5=#bb9af7
+palette = 6=#7dcfff
+palette = 7=#cbc6d9
+palette = 8=#4b4360
+palette = 9=#ff8fa3
+palette = 10=#b9f27c
+palette = 11=#ffc777
+palette = 12=#95b6ff
+palette = 13=#cdaaff
+palette = 14=#a4dcff
+palette = 15=#e8e4f0
+resize-overlay = never
+scrollback-limit = 50000
+selection-background = #3a2b42
+selection-foreground = #cbc6d9
+shell-integration = fish
+shell-integration-features = sudo,ssh-env,ssh-terminfo
+theme = 0x96f
+window-decoration = server
+window-padding-balance = true
+window-padding-color = extend
+window-titlebar-background = #C78282

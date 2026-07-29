@@ -5,10 +5,16 @@
 #   ./install.sh              link the config, report what is missing
 #   ./install.sh --tools      also install the missing system packages
 #   ./install.sh --tools --sync   ...and install all plugins and parsers
+#   ./install.sh --force      overwrite existing configs without prompting
 #
 # Symlinks ~/.config/nvim to the nvim/ directory in this repo. The Windows
 # counterpart is install.ps1, which uses a directory junction instead (a symlink
 # on Windows needs Administrator or Developer Mode; a junction does not).
+#
+# On Linux it also COPIES ghostty/config and starship/starship.toml into
+# ~/.config (copied, not linked — see section 5 for why). Existing files are
+# backed up with a timestamp first. Both steps are skipped on macOS and are not
+# mirrored in install.ps1.
 
 set -euo pipefail
 
@@ -25,7 +31,7 @@ for arg in "$@"; do
     --tools) INSTALL_TOOLS=1 ;;
     --sync)  SYNC=1 ;;
     --force) FORCE=1 ;;
-    -h|--help) sed -n '2,12p' "$0" | sed 's/^# \?//'; exit 0 ;;
+    -h|--help) sed -n '2,17p' "$0" | sed 's/^# \?//'; exit 0 ;;
     *) echo "unknown option: $arg" >&2; exit 1 ;;
   esac
 done
@@ -291,7 +297,72 @@ echo "  plugin + state directories (delete for a clean reinstall):"
 echo "    ${XDG_DATA_HOME:-$HOME/.local/share}/nvim"
 echo "    ${XDG_STATE_HOME:-$HOME/.local/state}/nvim"
 
-# ── 5. WezTerm config ─────────────────────────────────────────────────────────
+# ── 5. Ghostty and Starship configs (Linux only) ──────────────────────────────
+# These two are COPIED, not symlinked, unlike nvim/ above. That is deliberate:
+# both are single files that get poked at live (Ghostty reloads its config, and a
+# prompt gets retuned on the machine you are sitting at), and a symlink turns
+# every such experiment into an uncommitted change in this repo. Copy = the repo
+# is the source you install FROM; re-run ./install.sh to push a new version out,
+# and copy back by hand when a local tweak is worth keeping.
+#
+# Linux only. macOS has Ghostty but no verified config here (window-decoration =
+# server and the GTK titlebar settings below are Linux-side), and the Windows
+# counterpart install.ps1 deliberately handles Neovim only.
+if [ "$OS" = "Linux" ]; then
+  CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+  # Copy REPO_FILE to TARGET, backing up an existing, differing file first.
+  # Skips silently when the two are already identical, so re-running is quiet.
+  install_file() { # repo-relative source, absolute target, human name
+    local src="$REPO_ROOT/$1" dst="$2" name="$3"
+    if [ ! -f "$src" ]; then
+      warn "$name: nothing to install at $src"
+      return 0
+    fi
+    if [ -f "$dst" ] && cmp -s "$src" "$dst"; then
+      ok "$name: $dst already up to date"
+      return 0
+    fi
+    if [ -e "$dst" ] || [ -L "$dst" ]; then
+      # -L as well as -e: an earlier version of this script symlinked these, and a
+      # dangling symlink fails -e while still blocking the copy.
+      local backup="$dst.backup-$(date +%Y%m%d-%H%M%S)"
+      warn "$name: $dst exists and differs"
+      if [ "$FORCE" != "1" ]; then
+        read -r -p "  Back it up to $(basename "$backup") and overwrite? [y/N] " ans
+        [[ "$ans" =~ ^[Yy]$ ]] || { warn "$name: skipped"; return 0; }
+      fi
+      mv "$dst" "$backup"
+      ok "$name: backed up to $backup"
+    fi
+    mkdir -p "$(dirname "$dst")"
+    cp "$src" "$dst"
+    ok "$name: installed $dst"
+  }
+
+  step "Ghostty"
+  # The filename is exactly `config`, no extension — Ghostty ignores any other
+  # name without warning, which is how this machine once ran an unconfigured
+  # terminal while Neovim rendered its own palette. See ghostty/config's header.
+  install_file "ghostty/config" "$CONFIG_HOME/ghostty/config" "ghostty"
+  if [ -e "$CONFIG_HOME/ghostty/config.ghostty" ]; then
+    warn "$CONFIG_HOME/ghostty/config.ghostty is ignored by Ghostty — delete it"
+  fi
+  have ghostty || warn "ghostty is not on PATH — https://ghostty.org/download"
+
+  step "Starship"
+  # Starship reads $STARSHIP_CONFIG if set, else ~/.config/starship.toml — a bare
+  # file, not a directory, so this is one copy rather than a linked folder.
+  install_file "starship/starship.toml" "${STARSHIP_CONFIG:-$CONFIG_HOME/starship.toml}" "starship"
+  if have starship; then
+    ok "starship on PATH"
+  else
+    warn "starship missing — the config is in place but nothing reads it yet"
+    echo "         Arch: sudo pacman -S starship   ·  otherwise: https://starship.rs"
+  fi
+fi
+
+# ── 6. WezTerm config ─────────────────────────────────────────────────────────
 # The WezTerm config is NOT part of this repo (by design — it is one file), but it
 # lives at a path that is identical on both platforms, so mention it.
 step "WezTerm"
@@ -304,7 +375,7 @@ else
   echo "         Windows and Linux, so the file needs no changes."
 fi
 
-# ── 6. Sync plugins ───────────────────────────────────────────────────────────
+# ── 7. Sync plugins ───────────────────────────────────────────────────────────
 if [ "$SYNC" = "1" ]; then
   step "Installing plugins"
   nvim --headless "+Lazy! sync" +qa 2>&1 | sed 's/^/    /' || true
