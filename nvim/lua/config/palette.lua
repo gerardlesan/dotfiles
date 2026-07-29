@@ -14,9 +14,10 @@
 --- `error` is deliberately a different, more saturated red than `accent` so a
 --- diagnostic never reads as a keyword.
 ---
---- WezTerm mirrors these hex values in ~/.config/wezterm/wezterm.lua. WezTerm
---- cannot `require` from Neovim's runtimepath, so that file repeats the numbers
---- with a pointer back here. If you retune the palette, change both.
+--- Ghostty mirrors these hex values in ~/.config/ghostty/config (no extension —
+--- Ghostty ignores any other filename). Ghostty cannot `require` from Neovim's
+--- runtimepath, so that file repeats the numbers with a pointer back here. If you
+--- retune the palette, change both.
 ---
 --- To dial the red up or down, edit `accent` / `accent_deep` and re-open Neovim.
 --- Everything downstream (statusline, borders, syntax, git signs) derives from
@@ -75,8 +76,8 @@ M.colors = {
   git_delete = "#c75c6a",
 
   -- ── Terminal ANSI 0-15, for :terminal buffers ──────────────────────────────
-  -- Mirrors the WezTerm palette so a shell inside Neovim looks like a shell
-  -- outside it.
+  -- Mirrors the Ghostty palette (`palette = 0..15` in ~/.config/ghostty/config)
+  -- so a shell inside Neovim looks like a shell outside it.
   terminal = {
     black = "#2f2739",
     bright_black = "#4b4360",

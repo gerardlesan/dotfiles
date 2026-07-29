@@ -115,29 +115,16 @@ return {
   -- ═════════════════════════════════════════════════════════════════════════
   -- TREESITTER PARSERS
   -- ═════════════════════════════════════════════════════════════════════════
-  -- Note the separate `tsx` parser: .tsx files use it rather than `typescript`,
-  -- and without it JSX in a .tsx file is unhighlighted. This catches people out.
-  {
-    "nvim-treesitter/nvim-treesitter",
-    optional = true,
-    opts = function()
-      if vim.fn.executable("tree-sitter") == 1 then
-        pcall(function()
-          -- No "jsonc": JSON-with-comments uses the `json` parser via an alias
-          -- registered in lua/plugins/treesitter.lua.
-          require("nvim-treesitter").install({
-            "typescript",
-            "tsx",
-            "javascript",
-            "jsdoc",
-            "json",
-            "css",
-            "html",
-          })
-        end)
-      end
-    end,
-  },
+  -- Declared in the `parser_groups` table in lua/plugins/treesitter.lua, not
+  -- here: typescript, tsx, javascript, jsdoc, html and css are its `web` group
+  -- and `json` is in `data`. Note the separate `tsx` parser there — .tsx files
+  -- use it rather than `typescript`, and without it JSX in a .tsx file is
+  -- unhighlighted. (There is no `jsonc` parser; JSON-with-comments uses `json`
+  -- via an alias registered in treesitter.lua.)
+  --
+  -- A duplicate `optional = true` nvim-treesitter spec used to live here
+  -- re-installing all seven. lazy.nvim runs every merged `opts` function, so
+  -- that cost startup time and split one concern across two files.
 
   -- ═════════════════════════════════════════════════════════════════════════
   -- WHICH-KEY GROUP for the npm bindings above

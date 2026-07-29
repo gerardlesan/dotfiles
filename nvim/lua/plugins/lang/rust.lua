@@ -16,10 +16,23 @@
 ---   * a neotest adapter that understands cargo workspaces and doc-tests
 ---   * correct handling of proc-macro and build-script errors
 ---
---- TOOLCHAIN: rust_analyzer comes from rustup, not mason:
----     rustup component add rust-analyzer rust-src clippy rustfmt
---- `rust-src` matters — without it, go-to-definition into the standard library
---- lands nowhere. The install scripts add all four.
+--- TOOLCHAIN: rust_analyzer does NOT come from mason. Two routes, and on a
+--- distro that packages Rust itself the distro route is the right one:
+---
+---   * Arch / CachyOS (and any distro shipping `rust`): install from the repos —
+---         sudo pacman -S rust-analyzer rust-src
+---     pacman's `rustup` CONFLICTS with its `rust` package, so if you already
+---     have `rust` installed, `rustup component add` is not available to you.
+---     `rust-src` depends on `rust`, which version-locks it to the installed
+---     rustc — exactly what you want.
+---
+---   * Anywhere else (or if you manage toolchains per-project):
+---         rustup component add rust-analyzer rust-src clippy rustfmt
+---
+--- `rust-src` matters either way — without it, go-to-definition into the
+--- standard library lands nowhere. Arch's `rust` package does not ship it.
+--- install.sh picks the distro route when the package manager provides it and
+--- falls back to rustup.
 
 return {
   -- ═════════════════════════════════════════════════════════════════════════
@@ -31,7 +44,16 @@ return {
     -- Loads itself on Rust files; it is not a plugin you `setup()`. Configuration
     -- goes in the global `vim.g.rustaceanvim` table, which is unusual but
     -- deliberate — it lets a project-local .nvim.lua override it.
-    lazy = false,
+    --
+    -- rustaceanvim's own docs say "do not lazy-load", and `lazy = false` used to
+    -- be set here alongside `ft` — but `lazy = false` wins, so the `ft` line was
+    -- dead and rustaceanvim loaded even when opening a Python file. The
+    -- "do not lazy-load" advice exists because rustaceanvim installs its own
+    -- FileType hook; since this spec's entire body is a `config` that assigns
+    -- vim.g.rustaceanvim, `ft` is sufficient — lazy.nvim's own ft handler fires
+    -- first, so the global is set before rustaceanvim looks at it. If
+    -- rust_analyzer ever stops attaching, restore `lazy = false` and delete the
+    -- `ft` line instead: correctness beats the fraction of a millisecond.
     ft = { "rust" },
 
     config = function()
@@ -132,6 +154,15 @@ return {
                 loadOutDirsFromCheck = true,
                 -- Analyse build scripts, so generated code resolves.
                 buildScripts = { enable = true },
+                -- Give rust-analyzer its OWN target directory
+                -- (target/rust-analyzer). Without this, the `cargo clippy` below
+                -- and your own `cargo build` share target/ with different flags,
+                -- so each invocation evicts the other's fingerprints and every
+                -- analysis becomes a near-full rebuild. This is the single
+                -- biggest cause of "rust-analyzer takes forever every time" —
+                -- with it, a re-analysis only recompiles what actually changed.
+                -- Costs disk, saves minutes.
+                targetDir = true,
               },
 
               -- ── Diagnostics: use clippy, not just cargo check ───────────
@@ -143,6 +174,11 @@ return {
                 command = "clippy",
                 extraArgs = { "--no-deps" }, -- do not lint dependencies: much faster
                 allTargets = true, -- include tests and benches
+                -- Check only the crate being edited, not every crate in the
+                -- workspace. On a multi-crate workspace the difference is the
+                -- whole point: you get diagnostics for the file in front of you
+                -- without paying to re-check unrelated crates on every save.
+                workspace = false,
               },
 
               -- ── Inlay hints ─────────────────────────────────────────────
@@ -198,6 +234,17 @@ return {
               -- add them to the module tree.
               files = {
                 excludeDirs = { ".git", "target", ".venv", "node_modules" },
+                -- Let rust-analyzer watch the filesystem itself instead of
+                -- asking the editor to. The default is "client", which routes
+                -- file watching through Neovim's vim._watch — and with no
+                -- fswatch/inotifywait binary present that falls back to a libuv
+                -- recursive poll implemented in Lua, which walks target/ on a
+                -- Rust project. The server's own watcher is native and
+                -- target/-aware. See the didChangeWatchedFiles note in
+                -- lua/plugins/lsp.lua: that capability stays advertised
+                -- to every server (vtsls needs it), and this is what takes
+                -- rust-analyzer off that path.
+                watcher = "server",
               },
               -- Rust 2024 `gen` blocks and other unstable syntax.
               diagnostics = {
@@ -276,20 +323,11 @@ return {
     end,
   },
 
-  -- Make sure the Rust parser is present even if someone trims the treesitter
-  -- list. lazy.nvim merges this into the treesitter spec.
-  {
-    "nvim-treesitter/nvim-treesitter",
-    optional = true,
-    opts = function()
-      -- The main branch has no `ensure_installed` option, so parsers are
-      -- installed imperatively. Safe to call repeatedly: already-present parsers
-      -- are skipped.
-      if vim.fn.executable("tree-sitter") == 1 then
-        pcall(function()
-          require("nvim-treesitter").install({ "rust", "toml" })
-        end)
-      end
-    end,
-  },
+  -- NO treesitter spec here. `rust` and `toml` live in the `rust` entry of the
+  -- `parser_groups` table in lua/plugins/treesitter.lua, which is the one place
+  -- parsers are declared. A second `optional = true` nvim-treesitter spec in
+  -- this file used to re-install them: lazy.nvim runs every merged `opts`
+  -- function, so three lang/ files each calling install() made
+  -- nvim-treesitter.parsers load seven times at startup for no benefit — and it
+  -- meant two places to edit for one concern. Add parsers to `parser_groups`.
 }

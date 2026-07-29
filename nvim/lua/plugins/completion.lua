@@ -78,7 +78,19 @@ return {
     -- while most plugins in this config track their branch: following `main` would
     -- require building the matcher locally.
     version = "1.*",
-    dependencies = { "L3MON4D3/LuaSnip", "rafamadriz/friendly-snippets" },
+    -- NO `dependencies` on LuaSnip/friendly-snippets, deliberately. lsp.lua's
+    -- `pcall(require, "blink.cmp")` (for get_lsp_capabilities) makes lazy.nvim
+    -- load blink at BufReadPre — and a `dependencies` line here would drag
+    -- LuaSnip + friendly-snippets onto that path too, ~26 ms on every buffer
+    -- read, for something not needed until the first completion.
+    --
+    -- Safe because blink only touches LuaSnip from inside
+    -- lua/blink/cmp/sources/snippets/luasnip.lua, which requires it lazily at
+    -- function-call time rather than at setup. lazy.nvim loads LuaSnip on that
+    -- require, and LuaSnip's own `dependencies` pull in friendly-snippets,
+    -- whose config runs from_vscode.lazy_load() first. The chain is intact; it
+    -- just no longer runs at startup. `snippets.preset = "luasnip"` below is
+    -- what wires them together.
 
     -- Lets language-specific files in lua/plugins/lang/ append sources without
     -- replacing this list. See lua/plugins/lang/rust.lua for an example.
@@ -217,9 +229,14 @@ return {
         -- works on a machine with no toolchain — set it to "lua" to silence the
         -- warning and always use Lua.
         implementation = "prefer_rust_with_warning",
-        -- Boost items you have accepted before, and items whose text is near the
-        -- cursor. Both make the top suggestion right more often.
-        use_frecency = true,
+        -- Boost items you have accepted before. Renamed from the old
+        -- `use_frecency` flag, which still works but emits a deprecation
+        -- backtrace on every startup under Neovim 0.12 (blink's
+        -- config/fuzzy.lua calls vim.deprecate, and 0.12's vim.deprecate
+        -- appends a full stack traceback).
+        frecency = { enabled = true },
+        -- Boost items whose text appears near the cursor. Still a top-level
+        -- fuzzy option — this one was NOT renamed.
         use_proximity = true,
       },
 

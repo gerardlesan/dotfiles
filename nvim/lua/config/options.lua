@@ -320,7 +320,7 @@ opt.showcmd = true
 -- command line; with cmdheight=0 you would want "statusline". (default: "last")
 opt.showcmdloc = "last"
 
--- [global] Let Neovim set the terminal/window title to the current file. WezTerm
+-- [global] Let Neovim set the terminal/window title to the current file. Ghostty
 -- shows it in the tab, which is how you find the right window at a glance.
 -- (default: false)
 opt.title = true
@@ -351,7 +351,7 @@ opt.titlelen = 70
 -- opt.tabline = "%!v:lua.require'bufferline'.tabline()"
 --
 -- Restore the original terminal title on exit rather than leaving Neovim's.
--- Most terminals, WezTerm included, handle this themselves. (default: true)
+-- Most terminals, Ghostty included, handle this themselves. (default: true)
 -- opt.titleold = "bash"
 --
 -- Height of the command-line *window* (the editable `q:` history buffer).
@@ -1084,7 +1084,7 @@ opt.jumpoptions = "stack,view"
 --   X11     → install `xclip` or `xsel`
 --   WSL     → works via win32yank, usually already present
 --   ssh     → no tool needed; Neovim 0.10+ falls back to OSC 52, which asks the
---             *terminal* to set the clipboard. WezTerm supports this, so yanking
+--             *terminal* to set the clipboard. Ghostty supports this, so yanking
 --             over ssh lands in your local clipboard. Nothing to configure.
 -- `:checkhealth provider` names the missing tool if it isn't working.
 --
@@ -1533,7 +1533,7 @@ opt.scrollback = 10000
 -- are applied by an autocmd in autocmds.lua, because they must be per-buffer.
 --
 -- Colours inside :terminal come from g.terminal_color_0 .. 15, set from the
--- palette in lua/plugins/colorscheme.lua so a shell inside Neovim matches WezTerm.
+-- palette in lua/plugins/colorscheme.lua so a shell inside Neovim matches Ghostty.
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- 32  COMMAND LINE AND WILDMENU

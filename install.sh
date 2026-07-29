@@ -68,13 +68,23 @@ fi
 #
 # Notable trap: on Debian/Ubuntu the fd package is called `fd-find` and it
 # installs the binary as `fdfind`, not `fd`, because of a name clash. Handled below.
+#
+# `nodejs` is deliberately NOT listed: on every distro here `npm` depends on it,
+# so naming both is redundant. (brew is the exception — its package is `node` and
+# it carries npm, so that branch lists `node`.)
+#
+# pacman also gets `rust-analyzer`, `rust-src` and `lazygit` from the repos.
+# Arch's `rust` package does not ship the standard-library sources that
+# go-to-definition needs, and pacman's `rustup` *conflicts* with `rust` — so on
+# Arch the distro packages are the only route, not a convenience. `rust-src`
+# depends on `rust`, which version-locks it to the installed rustc.
 pkgs_for() {
   case "$PM" in
-    apt)    echo "git curl tar unzip build-essential ripgrep fd-find imagemagick nodejs npm python3 python3-venv wl-clipboard xclip fontconfig" ;;
-    dnf)    echo "git curl tar unzip gcc gcc-c++ make ripgrep fd-find ImageMagick nodejs npm python3 wl-clipboard xclip fontconfig" ;;
-    pacman) echo "git curl tar unzip base-devel ripgrep fd imagemagick nodejs npm python wl-clipboard xclip fontconfig" ;;
-    zypper) echo "git curl tar unzip gcc gcc-c++ make ripgrep fd ImageMagick nodejs npm python3 wl-clipboard xclip fontconfig" ;;
-    apk)    echo "git curl tar unzip build-base ripgrep fd imagemagick nodejs npm python3 wl-clipboard xclip fontconfig" ;;
+    apt)    echo "git curl tar unzip build-essential ripgrep fd-find imagemagick npm python3 python3-venv wl-clipboard xclip fontconfig" ;;
+    dnf)    echo "git curl tar unzip gcc gcc-c++ make ripgrep fd-find ImageMagick npm python3 wl-clipboard xclip fontconfig" ;;
+    pacman) echo "git curl tar unzip base-devel ripgrep fd imagemagick npm python wl-clipboard xclip fontconfig rust-analyzer rust-src lazygit" ;;
+    zypper) echo "git curl tar unzip gcc gcc-c++ make ripgrep fd ImageMagick npm python3 wl-clipboard xclip fontconfig" ;;
+    apk)    echo "git curl tar unzip build-base ripgrep fd imagemagick npm python3 wl-clipboard xclip fontconfig" ;;
     brew)   echo "git curl ripgrep fd imagemagick node python3 lazygit" ;;
     *)      echo "" ;;
   esac
@@ -184,7 +194,10 @@ if [ "$INSTALL_TOOLS" = "1" ] && [ -n "$PM" ]; then
     fi
   fi
 
-  # lazygit is not in Debian/Ubuntu repos before 24.04.
+  # lazygit is not in Debian/Ubuntu repos before 24.04. The `have lazygit` guard
+  # matters now that pacman and brew supply it in pkgs_for above: without it this
+  # would shell out to the GitHub API to reinstall a binary the package manager
+  # just put on PATH.
   if ! have lazygit && [ "$PM" = "apt" ]; then
     step "Installing lazygit"
     LG_VER="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest \
@@ -195,13 +208,23 @@ if [ "$INSTALL_TOOLS" = "1" ] && [ -n "$PM" ]; then
     ok "lazygit $LG_VER installed to ~/.local/bin"
   fi
 
-  # rust-analyzer comes from rustup, not the distro.
-  if have rustup && ! have rust-analyzer; then
+  # rust-analyzer: distro first where the distro actually has it, rustup
+  # otherwise. On Arch this ordering is required, not preferred — pacman's
+  # `rustup` conflicts with its `rust` package, so a machine with `rust`
+  # installed cannot use `rustup component add` at all. pkgs_for already added
+  # rust-analyzer and rust-src to the pacman list, so by here it is in place.
+  if have rust-analyzer; then
+    ok "rust-analyzer (from the distro packages)"
+  elif [ "$PM" = "pacman" ]; then
+    step "Installing Rust components"
+    install_pkgs "rust-analyzer rust-src"
+  elif have rustup; then
     step "Installing Rust components"
     rustup component add rust-analyzer rust-src clippy rustfmt
     ok "rust-analyzer, rust-src, clippy, rustfmt"
-  elif ! have rustup; then
-    warn "rustup not installed — get it from https://rustup.rs for Rust support"
+  else
+    warn "no rust-analyzer and no rustup — get rustup from https://rustup.rs,"
+    echo "         or install your distro's rust-analyzer + rust-src packages"
   fi
 
   # ~/.local/bin must be on PATH for the binaries installed above.

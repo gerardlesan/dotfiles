@@ -218,7 +218,7 @@ return {
       --   * <leader>ii shows the image under the cursor in a float
       --
       -- TERMINAL SUPPORT — read this before filing a bug against yourself:
-      --   Kitty, Ghostty  full support
+      --   Ghostty, Kitty  full support — this is what you are running
       --   WezTerm         works, but its Kitty-graphics implementation is partial
       --                   (no Unicode placeholders), so inline images inside a
       --                   scrolling document can leave artefacts. Press <C-l> to
@@ -269,8 +269,26 @@ return {
           -- silently rendering nothing
         },
         -- Render $...$ and $$...$$ LaTeX as images in markdown. Needs a TeX
-        -- distribution; harmless if absent (it just does nothing).
-        math = { enabled = true },
+        -- distribution.
+        --
+        -- Gated on the tooling actually existing, so that opening a markdown
+        -- file full of math does not fire a failed `tectonic`/`pdflatex`
+        -- conversion — and a notification, since `convert.notify` is on above —
+        -- once per expression. With the tooling absent, rendering could never
+        -- have worked anyway; this just fails quietly instead of noisily.
+        --
+        -- NOTE: this does NOT quieten :checkhealth. snacks' image health check
+        -- (`M.health()` in snacks/image/init.lua) probes for tectonic/pdflatex
+        -- and mmdc unconditionally — it never reads `math.enabled` — so
+        -- "None of the tools found: 'tectonic', 'pdflatex'" and
+        -- "Tool not found: 'mmdc'" are reported either way. Verified against
+        -- the installed version; do not "fix" it here. The only ways to silence
+        -- them are to install a TeX distribution (`tectonic`) and mermaid-cli
+        -- (`mmdc`), or to turn snacks.image off entirely, which costs real
+        -- features. They are listed as known issues in README.md instead.
+        math = {
+          enabled = vim.fn.executable("tectonic") == 1 or vim.fn.executable("pdflatex") == 1,
+        },
       },
 
       -- ══ Dashboard ═══════════════════════════════════════════════════════════
@@ -334,8 +352,20 @@ return {
             limit = 5,
           },
           -- Uncommitted changes in the current repo, right on the start screen.
+          --
+          -- NOTE: there is no `git` section in snacks — the real section list is
+          -- header, keys, projects, recent_files, session, startup, terminal.
+          -- Shell output goes through the `terminal` section, which caches
+          -- stdout on disk keyed by cmd+cwd for `ttl` seconds, so the start
+          -- screen never waits on git. Naming a section that does not exist
+          -- makes dashboard.lua call a nil section function, which leaves the
+          -- whole start screen an EMPTY buffer, re-throws on every resize (the
+          -- dashboard re-runs update() on WinResized/VimResized), and aborts the
+          -- rest of snacks' UIEnter batch — scroll, input, scope and picker
+          -- setup all get skipped. It only broke inside a git repo, because the
+          -- `enabled` guard below is checked first.
           {
-            section = "git",
+            section = "terminal",
             icon = icons.ui.branch,
             title = "Git Status",
             enabled = function()
@@ -343,6 +373,7 @@ return {
             end,
             cmd = "git status --short --branch --renames",
             height = 6,
+            ttl = 5 * 60,
             padding = 1,
             indent = 2,
           },
@@ -936,8 +967,8 @@ return {
           end
           table.insert(lines, "")
         end
-        table.insert(lines, "Terminal font in use is set by WezTerm, not Neovim:")
-        table.insert(lines, "  ~/.config/wezterm/wezterm.lua  ->  config.font")
+        table.insert(lines, "Terminal font in use is set by Ghostty, not Neovim:")
+        table.insert(lines, "  ~/.config/ghostty/config  ->  font-family")
         local buf = vim.api.nvim_create_buf(false, true)
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
         vim.bo[buf].filetype = "markdown"

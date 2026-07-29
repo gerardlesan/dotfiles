@@ -22,15 +22,27 @@ Plus optionally a test adapter and a language-specific plugin file.
 parser is present, checks it exists upstream, and installs it in the background.
 
 To make it explicit (recommended for a language you will always use), add it to
-`ensure_parsers` near the top of that file:
+the **`parser_groups`** table in that file — append to the group it belongs to, or
+add a new group:
 
 ```lua
-local ensure_parsers = {
-  "rust", "python", "typescript",
-  "go", "gomod", "gosum",   -- ← Go needs three
+local parser_groups = {
+  rust = { "rust", "toml" },
+  python = { "python", "requirements" },
+  go = { "go", "gomod", "gosum" },   -- ← Go needs three
   ...
 }
 ```
+
+> **Edit `parser_groups`, not `ensure_parsers`.** `ensure_parsers` a few lines
+> below is *generated* by flattening `parser_groups` with `vim.list_extend`, so
+> anything you write into it directly is discarded.
+
+Parsers are declared **only** here. Do not add an `optional = true`
+nvim-treesitter spec to `lua/plugins/lang/<lang>.lua` calling `install()` — the
+three language files used to do exactly that, and because lazy.nvim runs every
+merged `opts` function it re-loaded `nvim-treesitter.parsers` on each startup and
+split one concern across four files. Those specs were removed.
 
 Verify with `:checkhealth nvim-treesitter`. List every available name with:
 

@@ -198,14 +198,27 @@ autocmd({ "BufReadPre", "BufNewFile" }, {
 -- ═════════════════════════════════════════════════════════════════════════════
 
 -- Re-equalise splits when the terminal window is resized, and re-fit the tabline.
--- Without this, dragging the WezTerm window smaller leaves splits at their old
+-- Without this, dragging the Ghostty window smaller leaves splits at their old
 -- absolute sizes and one of them ends up two columns wide.
+--
+-- `equalalways = false` (options.lua) is deliberate and does not interfere:
+-- `wincmd =` equalises on demand regardless.
 autocmd("VimResized", {
   group = augroup("resize_splits"),
   desc = "Equalise splits on terminal resize",
   callback = function()
+    -- Do not equalise while a floating window is current. `wincmd =` would
+    -- discard deliberate sizing — including neo-tree's and oil's floats — and a
+    -- float's geometry is owned by the plugin that opened it, not by the split
+    -- layout.
+    if vim.api.nvim_win_get_config(0).relative ~= "" then
+      return
+    end
     local current_tab = vim.fn.tabpagenr()
-    vim.cmd("tabdo wincmd =")
+    -- `tabdo` fires autocmds in every tab, so any one plugin's handler can throw
+    -- part-way through and leave the layout half-updated with the cursor parked
+    -- in the wrong tab. pcall so the `tabnext` restore below always runs.
+    pcall(vim.cmd, "tabdo wincmd =")
     vim.cmd("tabnext " .. current_tab)
   end,
 })

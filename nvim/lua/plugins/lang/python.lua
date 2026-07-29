@@ -132,15 +132,9 @@ return {
   -- ═════════════════════════════════════════════════════════════════════════
   -- TREESITTER PARSER
   -- ═════════════════════════════════════════════════════════════════════════
-  {
-    "nvim-treesitter/nvim-treesitter",
-    optional = true,
-    opts = function()
-      if vim.fn.executable("tree-sitter") == 1 then
-        pcall(function()
-          require("nvim-treesitter").install({ "python", "requirements", "toml" })
-        end)
-      end
-    end,
-  },
+  -- Declared in the `parser_groups` table in lua/plugins/treesitter.lua, not
+  -- here: `python` and `requirements` are in its `python` group and `toml` in
+  -- its `rust` group. A duplicate `optional = true` nvim-treesitter spec used to
+  -- live here re-installing them — lazy.nvim runs every merged `opts` function,
+  -- so that was pure startup cost plus a second place to edit.
 }

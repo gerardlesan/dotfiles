@@ -1,13 +1,14 @@
-# dotfiles — Neovim + WezTerm
+# dotfiles — Neovim + Ghostty
 
 A cross-platform, Lua-only Neovim configuration built for Rust, Python and
 TypeScript, with a warm red-accented Tokyonight theme matched between the editor
 and the terminal.
 
-Developed on Windows 11, designed to move to Linux with one script.
+Developed on Windows 11, now running on Linux (CachyOS, Wayland, Ghostty) — the
+move was one script. Windows support remains, but Linux is the primary target.
 
 ```
-Neovim 0.12+ · lazy.nvim · 52 plugins · ~270 ms startup · zero vimscript
+Neovim 0.12+ · lazy.nvim · 52 plugins · ~180 ms startup · zero vimscript
 ```
 
 ---
@@ -86,16 +87,29 @@ expect (see the `fd-find` note below).
 Both scripts back up an existing config with a timestamp before replacing it, and
 both are safe to re-run.
 
-### WezTerm
+### Ghostty
 
 The terminal config is a single file and is **not** in this repo:
 
 ```
-~/.config/wezterm/wezterm.lua
+~/.config/ghostty/config
 ```
 
-That path works identically on Windows and Linux, so copying the file across is
-the entire migration. WezTerm hot-reloads it on save.
+**The filename matters**: Ghostty reads exactly `config`, with no extension. A
+file called `config.ghostty` is ignored without a warning, which leaves the
+terminal on its stock theme and font while Neovim renders its own palette — the
+mismatch shows up as "the colours are wrong outside nvim".
+
+It mirrors the hex values from `nvim/lua/config/palette.lua` (`background`,
+`foreground`, `cursor-color`, `selection-*`, and `palette = 0..15` from
+`M.colors.terminal`). Ghostty cannot read Neovim's Lua, so the numbers are
+repeated there with a pointer back. **Retune one, retune both.** Reload with
+`ctrl+shift+,`.
+
+Two settings there are worth knowing about: `resize-overlay = never`, because
+Ghostty's live size readout otherwise draws over a Neovim layout that is itself
+reflowing mid-drag, and `shell-integration = zsh`, which is what makes
+`window-inherit-working-directory` work.
 
 ---
 
@@ -116,7 +130,22 @@ skipping one degrades a specific feature rather than breaking the editor.
 | a Nerd Font | all icons | hollow boxes everywhere — test with `:CheckIcons` |
 | ImageMagick | non-PNG image conversion | only PNGs render |
 | lazygit | `<leader>gg` | use gitsigns and diffview instead |
-| rustup + `rust-analyzer`, `rust-src`, `clippy`, `rustfmt` | Rust | no Rust support |
+| `rust-analyzer` + `rust-src` | Rust | no Rust support |
+| fswatch *(optional)* | native LSP file watching | Neovim's `vim._watch` falls back to a recursive poll written in Lua |
+
+**rust-analyzer comes from your distro or from rustup, never from mason.** Two
+routes, and on a distro that packages Rust itself the distro route is the only
+one that works:
+
+```bash
+sudo pacman -S rust-analyzer rust-src lazygit   # Arch / CachyOS
+rustup component add rust-analyzer rust-src clippy rustfmt   # everywhere else
+```
+
+On Arch, pacman's `rustup` **conflicts with** its `rust` package, so if you have
+`rust` installed then `rustup component add` is not available to you. Either way
+`rust-src` is what makes go-to-definition jump into the standard library, and
+Arch's `rust` package does not ship it.
 
 On **Windows** the C compiler is [zig](https://ziglang.org) — a single executable
 that nvim-treesitter uses as `zig cc`, avoiding a full MSVC PATH setup.
@@ -130,7 +159,7 @@ Platform gotchas the scripts handle for you:
 - **tree-sitter CLI** is packaged almost nowhere and needs `libclang` to build from
   source, so both scripts download the prebuilt release binary.
 - **Clipboard on Linux**: needs `wl-clipboard` (Wayland) or `xclip`/`xsel` (X11).
-  Over SSH it needs nothing — Neovim 0.10+ falls back to OSC 52 and WezTerm
+  Over SSH it needs nothing — Neovim 0.10+ falls back to OSC 52 and Ghostty
   supports it, so yanking over SSH lands in your local clipboard.
 
 ---
@@ -223,10 +252,11 @@ usually a parser that failed to compile (`:checkhealth nvim-treesitter`).
 
 ## Known issues
 
-- **Inline images in WezTerm can leave artefacts** when scrolling. WezTerm's
-  Kitty-graphics implementation is partial (no Unicode placeholders). Press `<C-l>`
-  to redraw; float mode (`<leader>ii`) is reliable. Kitty and Ghostty implement the
-  protocol fully, and nothing else in this config is terminal-specific.
+- **Inline images need a terminal with full Kitty-graphics support.** Ghostty and
+  Kitty have it. WezTerm's implementation is partial (no Unicode placeholders), so
+  inline images inside a scrolling document can leave artefacts — press `<C-l>` to
+  redraw; float mode (`<leader>ii`) is reliable. Nothing else in this config is
+  terminal-specific.
 - **A treesitter parser can fail with `EPERM: could not rename temp` on Windows.**
   A race with antivirus scanning the freshly extracted files. Just run
   `:TSInstall <lang>` again. The `gitcommit` grammar hits this most often because
@@ -245,10 +275,36 @@ usually a parser that failed to compile (`:checkhealth nvim-treesitter`).
   | `gs` (ghostscript) | rendering PDFs inline | `winget install ArtifexSoftware.GhostScript` / `apt install ghostscript` |
   | `pdflatex` / `tectonic` | rendering LaTeX math in markdown | a TeX distribution |
   | `mmdc` | rendering Mermaid diagrams | `npm i -g @mermaid-js/mermaid-cli` |
-  | kitty graphics protocol | — | reported only when run headless; WezTerm supports it |
+  | kitty graphics protocol | — | reported only when run headless; Ghostty supports it |
 
-  To silence the LaTeX one, set `math = { enabled = false }` in the `image` block of
-  `nvim/lua/plugins/snacks.lua`.
+  The LaTeX and Mermaid errors **cannot be configured away**: snacks' image
+  healthcheck probes for `tectonic`/`pdflatex` and `mmdc` unconditionally and never
+  consults `math.enabled`, so setting it changes nothing here. Install a TeX
+  distribution and `mmdc` if you want them gone. `math.enabled` in the `image`
+  block of `nvim/lua/plugins/snacks.lua` *is* gated on that tooling, for a
+  different reason: without it, a markdown file full of `$…$` would otherwise fire
+  one failed conversion and one notification per expression.
+
+- **`:checkhealth snacks` warns about missing Treesitter languages** — `latex`,
+  `norg`, `svelte`, `typst`, `vue`. That is snacks.image listing parsers it *could*
+  use for inline rendering. Left as-is deliberately: installing five parsers for
+  languages that are never edited here is worse than one warning. Add them to
+  `parser_groups` in `nvim/lua/plugins/treesitter.lua` if you disagree.
+
+- **Four `:checkhealth` complaints are headless-only artifacts.**
+  `Snacks.dashboard: setup did not run`, `vim.ui.input is not set to Snacks.input`,
+  `vim.ui.select is not set`, and the kitty-graphics one all come from `UIEnter`
+  never firing without a UI. Run `:checkhealth` inside Neovim, not via
+  `nvim --headless`, and they are absent.
+
+- **Startup looks ~100 ms slower under a bare pty than it really is.** Neovim 0.12
+  probes `'background'` with OSC 11 + DSR and `vim.wait(100, ...)` for the reply;
+  a captured pty never answers, so it burns the whole budget. Ghostty answers in
+  about a millisecond. This happens in `vim/_core/defaults.lua` before any user
+  config loads and cannot be disabled from `options.lua` — setting
+  `opt.background` does not help, because the guard there ignores values set from
+  Lua. `nvim --clean` shows the same 100 ms, which is how you confirm it is not
+  this config.
 
 ## Alternatives, if you disagree with a choice
 

@@ -257,24 +257,31 @@ error, `rc` open Cargo.toml, `ro` docs.rs, `ru`/`rU` upgrade crates)
 
 ---
 
-## WezTerm — all bindings use `CTRL+SHIFT`
+## Ghostty — stock defaults, deliberately not rebound
 
-Chosen because `CTRL+SHIFT` combinations are essentially never bound inside
-terminal programs, so nothing Neovim wants is shadowed. There is deliberately no
-leader key: it would swallow a chord before Neovim saw it.
+`~/.config/ghostty/config` sets appearance only and defines **no** `keybind`
+lines. Ghostty's defaults already live on `CTRL+SHIFT`, which terminal programs
+essentially never bind, so nothing Neovim wants is shadowed — and leaving them
+stock means the bindings match Ghostty's own documentation.
+
+The ones worth knowing (verified with `ghostty +list-keybinds`):
 
 | Key | Action |
 |---|---|
-| `CTRL+SHIFT+\|` / `_` | split pane right / down (same mnemonics as `<leader>\|` and `-`) |
-| `CTRL+SHIFT+h/j/k/l` | move between panes |
-| `CTRL+SHIFT+z` | zoom pane |
-| `CTRL+SHIFT+w` | close pane |
-| `CTRL+SHIFT+arrows` | resize pane |
-| `CTRL+SHIFT+t` | new tab · `[` `]` switch · `e` tab navigator · `r` rename |
-| `CTRL+SHIFT+c` / `v` | copy / paste |
-| `CTRL+SHIFT+/` | search scrollback · `x` copy mode (Vim motions over output) |
-| `CTRL+SHIFT+s` | **quick-select** — label every path/URL on screen, copy with 2 keys |
-| `CTRL+SHIFT+o` | open a URL from the screen without the mouse |
-| `CTRL+SHIFT+f` | fullscreen · `p` launcher · `L` debug overlay |
-| `CTRL+ALT+k` | clear scrollback and screen |
-| `CTRL+SHIFT++` / `CTRL+-` / `CTRL+0` | font size up / down / reset |
+| `CTRL+SHIFT+o` / `e` | split right / down |
+| `CTRL+ALT+arrows` | move between splits |
+| `SUPER+CTRL+SHIFT+arrows` | resize split by 10 |
+| `CTRL+SHIFT+ENTER` | zoom split |
+| `CTRL+SHIFT+t` | new tab · `CTRL+TAB` / `CTRL+SHIFT+TAB` next / previous |
+| `CTRL+SHIFT+arrow_left` / `arrow_right` | previous / next tab |
+| `CTRL+SHIFT+w` | close tab |
+| `CTRL+SHIFT+c` / `v` | copy / paste · `CTRL+SHIFT+a` select all |
+| `CTRL+SHIFT+page_up` / `page_down` | jump to previous / next shell prompt |
+| `CTRL+ENTER` | fullscreen · `CTRL+SHIFT+i` inspector |
+| `CTRL+SHIFT+,` | reload this config |
+| `CTRL++` / `CTRL+-` / `CTRL+0` | font size up / down / reset |
+
+**Plain `CTRL+arrows` is deliberately left free** — that is what Neovim's split
+resize keys (`<C-Up>`/`<C-Down>`/`<C-Left>`/`<C-Right>`, above) need. Ghostty
+binds `CTRL+SHIFT+arrows` and `CTRL+ALT+arrows`, neither of which collides. If
+you ever add a `CTRL+arrow` binding here, those Neovim keys stop arriving.

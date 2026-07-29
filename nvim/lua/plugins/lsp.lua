@@ -190,6 +190,15 @@ return {
 
       -- Advertise that we can watch files, so servers like vtsls notice changes
       -- made outside Neovim (a git checkout, a codegen step).
+      --
+      -- This applies to EVERY server, which is a real trade-off: a server that
+      -- takes us up on it hands its watching to Neovim's vim._watch, and with no
+      -- fswatch/inotifywait binary on the box that degrades to a libuv recursive
+      -- poll written in Lua. Harmless for a TypeScript project, expensive for one
+      -- with a large build directory. Kept on because vtsls genuinely needs it;
+      -- the fix for the expensive case is per-server, and rust-analyzer takes it
+      -- — see `files.watcher = "server"` in lua/plugins/lang/rust.lua. Installing
+      -- fswatch also makes vim._watch use a native backend instead of polling.
       capabilities.workspace = capabilities.workspace or {}
       capabilities.workspace.didChangeWatchedFiles = { dynamicRegistration = true }
 
@@ -290,12 +299,21 @@ return {
           -- ── Codelens: inline "N references", "run test" annotations that some
           --    servers provide. Off by default in Neovim; refreshed on idle.
           if client:supports_method("textDocument/codeLens") then
+            -- `vim.lsp.codelens.enable(true, ...)`, NOT `codelens.refresh(...)`.
+            -- Neovim 0.12 deprecated `refresh` in favour of `enable` (removal in
+            -- 0.13), and its shim calls vim.deprecate unconditionally — which
+            -- under 0.12 appends a full stack traceback. Since the autocmd below
+            -- fires on CursorHold, the old call printed that on essentially every
+            -- LSP buffer. `enable` re-requests lenses the same way; it is the
+            -- documented replacement, not merely a toggle.
             map("<leader>cc", vim.lsp.codelens.run, "Run codelens")
-            map("<leader>cC", vim.lsp.codelens.refresh, "Refresh codelens")
+            map("<leader>cC", function()
+              vim.lsp.codelens.enable(true, { bufnr = 0 })
+            end, "Refresh codelens")
             vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
               buffer = bufnr,
               callback = function()
-                pcall(vim.lsp.codelens.refresh, { bufnr = bufnr })
+                pcall(vim.lsp.codelens.enable, true, { bufnr = bufnr })
               end,
             })
           end

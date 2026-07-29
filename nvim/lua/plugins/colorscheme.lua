@@ -34,12 +34,13 @@ return {
       style = "night",
 
       -- Let the terminal's own background show through. Off: a solid background
-      -- is more legible, and WezTerm's background is already this exact colour so
-      -- there is nothing to gain.
+      -- is more legible, and Ghostty's background is already this exact colour
+      -- (`background = #1a1820` in ~/.config/ghostty/config, mirrored from
+      -- palette.lua) so there is nothing to gain.
       transparent = false,
 
       -- Set g:terminal_color_0..15 so a `:terminal` inside Neovim uses the same
-      -- ANSI palette as WezTerm. Without this, a shell inside Neovim looks
+      -- ANSI palette as Ghostty. Without this, a shell inside Neovim looks
       -- jarringly different from one outside it.
       terminal_colors = true,
 
@@ -500,7 +501,7 @@ return {
       vim.cmd.colorscheme("tokyonight")
 
       -- Explicitly set the 16 ANSI colours for `:terminal` buffers from our
-      -- palette, so a shell (or lazygit) running inside Neovim matches WezTerm
+      -- palette, so a shell (or lazygit) running inside Neovim matches Ghostty
       -- exactly. `terminal_colors = true` above gets most of the way there; this
       -- pins the exact values.
       local t = c.terminal
