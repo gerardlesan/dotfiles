@@ -262,3 +262,9 @@ usually a parser that failed to compile (`:checkhealth nvim-treesitter`).
   in `lua/plugins/lsp.lua` to go back.
 - **TypeScript LSP**: `vtsls` instead of `ts_ls`, for working inlay hints and better
   monorepo handling.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
