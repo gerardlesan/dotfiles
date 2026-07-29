@@ -1,3 +1,5 @@
+--- This is mostly ai. Don't even look at it. ---
+
 # dotfiles — Neovim + Ghostty
 
 A cross-platform, Lua-only Neovim configuration built for Rust, Python and
