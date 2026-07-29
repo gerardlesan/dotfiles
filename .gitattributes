@@ -1,0 +1,37 @@
+# Line-ending policy. This file is load-bearing for cross-platform use.
+#
+# Without it, a Windows clone with core.autocrlf=true checks install.sh out with
+# CRLF line endings. On Linux the shebang then reads `#!/usr/bin/env bash\r` and
+# the kernel reports "bad interpreter: no such file or directory" — a genuinely
+# baffling error, because the file plainly exists.
+#
+# Policy: LF everywhere, with a deliberate exception for PowerShell.
+
+# Normalise to LF in the repo AND in the working tree, on every platform.
+* text=auto eol=lf
+
+# Shell scripts must be LF. Non-negotiable — see above.
+*.sh   text eol=lf
+*.bash text eol=lf
+
+# Lua, config and docs: LF. Neovim reads either, but 'fileformats' in
+# lua/config/options.lua prefers unix, and LF keeps diffs clean across machines.
+*.lua  text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# PowerShell is the exception: CRLF. Some older Windows PowerShell hosts mis-parse
+# LF-only here-strings, and the script only ever runs on Windows anyway.
+*.ps1  text eol=crlf
+
+# Never touch binaries, if any are ever added (fonts, images for the README).
+*.png  binary
+*.jpg  binary
+*.gif  binary
+*.ttf  binary
+*.otf  binary
+*.zip  binary
+*.gz   binary

@@ -1,0 +1,23 @@
+# stylua configuration — formats every Lua file in this repo.
+#
+# conform.nvim runs stylua on save for Lua buffers (lua/plugins/format.lua), and
+# after/ftplugin/lua.lua sets the editor's indent to match. Keeping all three in
+# agreement is what stops format-on-save from reflowing code you just typed.
+#
+# Run manually with:  stylua nvim/
+
+column_width = 120
+line_endings = "Unix"
+indent_type = "Spaces"
+indent_width = 2
+quote_style = "AutoPreferDouble"
+
+# Keep parentheses on single-argument calls. `require "foo"` is valid Lua but
+# `require("foo")` is what the whole Neovim ecosystem writes, and consistency
+# matters more than brevity here.
+call_parentheses = "Always"
+
+collapse_simple_statement = "Never"
+
+[sort_requires]
+enabled = false

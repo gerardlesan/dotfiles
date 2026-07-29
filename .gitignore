@@ -1,0 +1,35 @@
+# ── Neovim runtime junk ────────────────────────────────────────────────────────
+# Everything below is machine-generated or machine-specific. The whole point of
+# this repo is that a fresh clone + install script reproduces the setup, so none
+# of it belongs in version control.
+
+# Plugin code itself lives in stdpath("data"), not here, but be defensive in case
+# someone ever vendors a plugin into the repo by accident.
+nvim/lazy/
+nvim/site/
+nvim/spell/*.spl
+nvim/spell/*.sug
+
+# Session / shada / undo / swap, if any of them ever get pointed at the repo.
+*.vim.session
+*.shada
+*.shada.tmp
+*.un~
+*.swp
+*.swo
+
+# ── Local-only overrides ───────────────────────────────────────────────────────
+# `lua/config/local.lua` is sourced at the very end of init.lua if it exists.
+# Use it for machine-specific things you do NOT want on every box: a work proxy,
+# a different font size, an extra LSP for a language only present on one machine.
+nvim/lua/config/local.lua
+
+# ── OS / editor cruft ──────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+
+# NOTE: lazy-lock.json is deliberately NOT ignored. It pins every plugin to an
+# exact commit, which is what makes "clone on Linux" produce the same editor
+# rather than whatever HEAD happens to be that day. Commit it.
