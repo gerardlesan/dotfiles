@@ -201,8 +201,23 @@ return {
                 chainingHints = { enable = true },
                 parameterHints = { enable = true },
                 typeHints = { enable = true },
-                -- Show `.into()` / deref coercions that are happening implicitly.
-                reborrowHints = { enable = "mutable" },
+                -- Adjustment hints — the compiler's implicit `&` / `&mut` / `*`
+                -- around an expression — are OFF. They are the hints that wrap
+                -- code in virtual parentheses: `if !favicon.status()...` renders
+                -- as `if !(&(&favicon).status()).is_success()`, which is harder
+                -- to read than the auto-ref it is describing.
+                --
+                -- BOTH keys are needed. `reborrowHints` is deprecated in favour
+                -- of `expressionAdjustmentHints` (says so in rust-analyzer's own
+                -- config schema — `rust-analyzer --print-config-schema`), and it
+                -- is the one that was on here: `enable = "mutable"` produced the
+                -- parenthesised shared-ref hints above, verified by dumping
+                -- textDocument/inlayHint before and after. The second key is the
+                -- non-deprecated spelling, already `never` by default, set
+                -- explicitly so a future rust-analyzer that stops honouring the
+                -- deprecated alias does not silently turn them back on.
+                reborrowHints = { enable = "never" },
+                expressionAdjustmentHints = { enable = "never" },
                 lifetimeElisionHints = { enable = "skip_trivial", useParameterNames = false },
                 maxLength = 30,
               },
