@@ -40,7 +40,19 @@ return {
   -- ═════════════════════════════════════════════════════════════════════════
   {
     "mrcjkb/rustaceanvim",
-    version = "^6",
+    -- Pinned to a major because rustaceanvim releases breaking changes in major
+    -- bumps and this config passes it a large `vim.g.rustaceanvim` table.
+    --
+    -- Was `^6` until 2026-07-30. v6.9.7 (the last v6, Nov 2025) calls
+    -- `vim.lsp.get_buffers_by_client_id()` in `server_status.lua` — deprecated,
+    -- removed in Neovim 0.13 — so every rust-analyzer attach logged a
+    -- deprecation warning. Upstream fixed it in fe91aad, first released in
+    -- v7.0.0, so no v6 ever gets the fix. Checked the three breaking changes
+    -- between v6 and v9 against this config: v7 dropped ra-multiplex (lspmux
+    -- instead), v8 dropped `.vscode/settings.json` reading, v9 dropped Neovim
+    -- 0.11. This config uses none of them and needs 0.12+ anyway (§ treesitter
+    -- main branch, native vim.lsp.config).
+    version = "^9",
     -- Loads itself on Rust files; it is not a plugin you `setup()`. Configuration
     -- goes in the global `vim.g.rustaceanvim` table, which is unusual but
     -- deliberate — it lets a project-local .nvim.lua override it.
