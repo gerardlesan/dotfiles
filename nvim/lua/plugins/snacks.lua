@@ -216,6 +216,8 @@ return {
       --   * images referenced in markdown render inline under the link
       --   * LaTeX math in markdown renders as an image
       --   * <leader>ii shows the image under the cursor in a float
+      --   * `nvim favicon.ico` shows the icon — see `formats` and the `ico`
+      --     ImageMagick recipe below; neither is in snacks' defaults
       --
       -- TERMINAL SUPPORT — read this before filing a bug against yourself:
       --   Ghostty, Kitty  full support — this is what you are running
@@ -243,6 +245,11 @@ return {
           "avif",
           "svg",
           "pdf",
+          -- Windows icons. NOT in snacks' defaults (which ship `icns`, the macOS
+          -- equivalent, but not `ico`) — without this entry snacks never claims
+          -- the buffer and `nvim favicon.ico` shows binary garbage. Needs the
+          -- `convert.magick.ico` recipe below to be legible; see the comment there.
+          "ico",
         },
         doc = {
           enabled = true,
@@ -267,6 +274,32 @@ return {
         convert = {
           notify = true, -- tell you when ImageMagick is missing rather than
           -- silently rendering nothing
+          magick = {
+            -- Per-extension ImageMagick recipe; deep-merged with snacks'
+            -- `default` / `vector` / `math` / `pdf` entries, which stay as they are.
+            --
+            -- .ico needs its own because the default recipe is
+            -- `{ "{src}[0]", "-scale", "1920x1080>" }` and the `>` suffix means
+            -- "only ever shrink". An icon frame is 16-48 px, so the default
+            -- renders it at native size — one or two terminal cells, effectively
+            -- invisible. `-resize 512x512` (no `>`) scales up instead, and
+            -- `-filter point` keeps the upscale nearest-neighbour: pixel art
+            -- blown up with the default Lanczos filter turns to mush.
+            -- `-background none` preserves the alpha channel icons rely on.
+            --
+            -- `{src}[{page}]` (page 0) is the first frame, not the biggest one.
+            -- An .ico is a container and frame order is whatever the authoring
+            -- tool wrote — verified on this machine: git-for-windows.ico is
+            -- ascending 16→256, git-gui.ico is 32 then 16, and Angry IP
+            -- Scanner's icon.ico starts 48, 32, 16, 256. There is no ImageMagick
+            -- CLI operator that selects "largest frame" in one pass, and snacks
+            -- runs exactly one command per conversion, so frame 0 it is.
+            -- To reach another frame: in markdown, `![](icon.ico#page=4)` —
+            -- snacks' `#page=` suffix is 1-based and works for any container
+            -- format. For a plain buffer there is no such syntax; use
+            -- `:!magick icon.ico[3] /tmp/x.png` and open that.
+            ico = { "{src}[{page}]", "-background", "none", "-filter", "point", "-resize", "512x512" },
+          },
         },
         -- Render $...$ and $$...$$ LaTeX as images in markdown. Needs a TeX
         -- distribution.
