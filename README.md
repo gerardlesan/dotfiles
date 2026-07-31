@@ -281,6 +281,13 @@ usually a parser that failed to compile (`:checkhealth nvim-treesitter`).
   it ships a `.wasm` blob.
 - **`vim.lsp.get_buffers_by_client_id() is deprecated`** appears once in Rust
   buffers. Upstream in rustaceanvim, harmless, will resolve on a plugin update.
+- **`Invalid 'col': out of range` from `ns=nvim.lsp.inlayhint`** was a Neovim
+  0.12 bug: after a language server restarted, Neovim quietly stopped tracking
+  the buffer, so the server kept working from stale text and inlay hints were
+  drawn at columns that no longer exist. Worked around by
+  `nvim/lua/util/lspsync.lua`; the workaround switches itself off on Neovim 0.13,
+  where upstream fixed it. If you ever see it again, closing and reopening the
+  buffer clears it (`:e` alone only helps until the next edit).
 - **Debug adapters (nvim-dap) are not installed** by choice. `<leader>d` is
   reserved for them and `<leader>rd` in Rust is already wired; see
   [docs/ADDING-A-LANGUAGE.md](docs/ADDING-A-LANGUAGE.md) for adding it.

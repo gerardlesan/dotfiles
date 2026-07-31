@@ -214,6 +214,14 @@ return {
       -- matching file is opened.
       vim.lsp.enable(servers)
 
+      -- Workaround for an upstream 0.12 bug: after a server restart (or any edit
+      -- made while the buffer's last client is gone) Neovim silently stops
+      -- tracking that buffer, which freezes vim.lsp.util.buf_versions and makes
+      -- the inlay-hint decoration provider throw "Invalid 'col': out of range" on
+      -- every redraw. Must be installed before the first LspAttach; the file
+      -- explains the mechanism and when it can be deleted.
+      require("util.lspsync").setup()
+
       -- ── 4. Buffer-local setup when a server attaches ─────────────────────
       vim.api.nvim_create_autocmd("LspAttach", {
         group = vim.api.nvim_create_augroup("lsp_attach", { clear = true }),

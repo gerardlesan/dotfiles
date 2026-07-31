@@ -116,7 +116,9 @@ dotfiles/
     │   │   └── lang/            one file per LANGUAGE (rust, python, typescript)
     │   └── util/
     │       ├── folds.lua        fold text that keeps syntax highlighting + line count
-    │       └── incsel.lua       incremental selection (removed upstream, reimplemented)
+    │       ├── incsel.lua       incremental selection (removed upstream, reimplemented)
+    │       └── lspsync.lua      workaround: Neovim 0.12 stops tracking a buffer
+    │                            after a server restart (see §5)
     ├── after/
     │   ├── lsp/                 per-server overrides (7 servers + README)
     │   └── ftplugin/            per-filetype buffer-local settings (14 fts + README)
@@ -407,6 +409,26 @@ carries a comment in-place; if you change one, update the comment and this list.
 - **`.gitattributes` forces LF everywhere except `*.ps1` (CRLF).** Without it a
   Windows clone with `autocrlf=true` gives `install.sh` a
   `#!/usr/bin/env bash\r` shebang and a "bad interpreter" error on Linux.
+
+- **`lua/util/lspsync.lua` attaches a second `nvim_buf_attach` per LSP buffer**,
+  which looks redundant next to the one `runtime/lua/vim/lsp.lua` already
+  installs. It is a workaround for an upstream 0.12 bug, and it does nothing
+  unless that first callback disappears. Edit a buffer while its last client is
+  gone (crashed server, `:LspRestart`) and lsp.lua's `on_lines` returns `true` to
+  detach itself — but a buffer callback that detaches that way never fires
+  `on_detach` (verified), so lsp.lua's `attached_buffers[bufnr]` is never
+  cleared and the next attach skips `nvim_buf_attach` entirely. From then on
+  `vim.lsp.util.buf_versions[buf]` is frozen and no `didChange` is sent: the
+  server silently works from stale text, and the inlay-hint decoration provider —
+  whose only guard is `bufstate.version ~= util.buf_versions[bufnr]` — starts
+  throwing `Invalid 'col': out of range` on every redraw. Reproduced end to end
+  against the real config and rust-analyzer: with the shim stubbed out, 3 errors
+  and `buf_versions` frozen; with it, 0 errors and tracking restored. Gated on
+  `< 0.13` out of caution about the private module it uses — but note that master
+  fixed only the inlay-hint half (neovim/neovim#40569); the self-detach is still
+  there, so on 0.13 the bug goes quiet rather than away. Re-test before removing
+  the gate; the file says how. **Symptom to recognise: `:e` fixes it temporarily,
+  closing and reopening the buffer fixes it properly.**
 
 ---
 
