@@ -1,9 +1,17 @@
 # Ghostty terminal configuration.
 #
-# Installed by ../install.sh as a symlink at ~/.config/ghostty/config.
+# COPIED (not symlinked) by ../install.sh to ~/.config/ghostty/config. A copy,
+# because this file gets retuned live and a symlink would make every experiment
+# an uncommitted change in the repo — so the installed file can be AHEAD of this
+# one. Diff before assuming otherwise, and copy a live tweak back by hand.
+#
 # THE FILENAME MATTERS: Ghostty reads exactly `config`, with no extension, and
 # silently ignores anything else — a stray `config.ghostty` is how this machine
 # once ran a completely unconfigured terminal.
+#
+# Check what Ghostty actually ended up with:
+#   ghostty +validate-config      parse errors, if any
+#   ghostty +show-config          the effective values, after all merging
 #
 # The colours below MIRROR nvim/lua/config/palette.lua (`M.colors`, and
 # `M.colors.terminal` for `palette = 0..15`). Ghostty cannot read Neovim's Lua, so
@@ -51,8 +59,22 @@ selection-background = #3a2b42
 selection-foreground = #cbc6d9
 shell-integration = fish
 shell-integration-features = sudo,ssh-env,ssh-terminfo
-theme = 0x96f
+# NO `theme = …` line. The generator this file started from emitted
+# `theme = 0x96f`, which was inert — every key a theme sets is already set
+# explicitly above (verified: `ghostty +show-config` is byte-identical with the
+# line and without it). It was removed rather than kept as a harmless leftover
+# because it is a latent second source of colour: delete any one palette line
+# above and the theme silently supplies its own value instead, which is exactly
+# the drift nvim/lua/config/palette.lua being the single source is meant to
+# prevent. If a colour is missing here, add it here.
 window-decoration = server
 window-padding-balance = true
 window-padding-color = extend
+# The one hex in this file with NO counterpart in palette.lua (and the only one
+# written uppercase) — a leftover from the generator, not a tuned value. Left as
+# it is rather than guessed at, because it is also inert on this machine:
+# `window-decoration = server` hands the titlebar to the compositor (KWin here),
+# and this key styles Ghostty's own GTK client-side titlebar. If you ever switch
+# to `window-decoration = client`, this is the value that will suddenly show up —
+# pick one from palette.lua then, and note which name it came from.
 window-titlebar-background = #C78282
