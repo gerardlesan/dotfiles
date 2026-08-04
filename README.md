@@ -110,6 +110,21 @@ because the Ghostty config here carries Linux-side window-decoration settings.
 
 Starship reads `$STARSHIP_CONFIG` if it is set, and the installer honours that.
 
+**Copying `starship.toml` is not enough to get the prompt.** Starship also has to
+be *initialised by the shell*, and that line lives in the shell's own rc file,
+which is per-machine and is deliberately not in this repo:
+
+```fish
+starship init fish | source          # ~/.config/fish/config.fish — last line
+```
+
+(`eval "$(starship init zsh)"` in `~/.zshrc`, `eval "$(starship init bash)"` in
+`~/.bashrc`.) Miss it and everything looks installed while the stock prompt keeps
+rendering — so `install.sh` checks your login shell's rc file for it and prints
+the exact line if it is absent. It does not edit the rc file itself: a distro that
+ships its own prompt framework (CachyOS sources `cachyos-config.fish`) has to be
+initialised *before* starship, and only you know what else is in there.
+
 **The filename matters**: Ghostty reads exactly `config`, with no extension. A
 file called `config.ghostty` is ignored without a warning, which leaves the
 terminal on its stock theme and font while Neovim renders its own palette — the
@@ -145,7 +160,7 @@ skipping one degrades a specific feature rather than breaking the editor.
 | ripgrep | grep picker, `:grep` | project search unavailable |
 | fd | file picker, venv detection | picker falls back to a slower walker |
 | Node.js | TypeScript LSP, prettier, jest | no TS support |
-| a Nerd Font | all icons | hollow boxes everywhere — test with `:CheckIcons` |
+| **JetBrainsMono Nerd Font** | all icons | hollow boxes everywhere — test with `:CheckIcons`. It has to be *this* family: `ghostty/config` names it in `font-family`, and Ghostty falls back to a default font, silently, if it is missing — having some *other* Nerd Font installed does not help |
 | ImageMagick | non-PNG image conversion | only PNGs render |
 | lazygit | `<leader>gg` | use gitsigns and diffview instead |
 | `rust-analyzer` + `rust-src` | Rust | no Rust support |

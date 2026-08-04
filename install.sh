@@ -79,6 +79,14 @@ fi
 # so naming both is redundant. (brew is the exception — its package is `node` and
 # it carries npm, so that branch lists `node`.)
 #
+# `starship` and the Nerd Font are listed only where the package name is verified
+# to exist and to be the right thing: pacman (`starship`, `ttf-jetbrains-mono-nerd`
+# — both in extra) and brew (`starship`; its Nerd Font is a cask, so it is not in
+# this list and section 3 prints the cask command instead). Debian/Fedora/SUSE/Alpine
+# are left out on purpose — their JetBrains Mono packages are the UNPATCHED upstream
+# font, which installs cleanly and then renders every icon as a hollow box, which is
+# worse than the honest "not installed" message section 3 prints.
+#
 # pacman also gets `rust-analyzer`, `rust-src` and `lazygit` from the repos.
 # Arch's `rust` package does not ship the standard-library sources that
 # go-to-definition needs, and pacman's `rustup` *conflicts* with `rust` — so on
@@ -88,10 +96,10 @@ pkgs_for() {
   case "$PM" in
     apt)    echo "git curl tar unzip build-essential ripgrep fd-find imagemagick npm python3 python3-venv wl-clipboard xclip fontconfig" ;;
     dnf)    echo "git curl tar unzip gcc gcc-c++ make ripgrep fd-find ImageMagick npm python3 wl-clipboard xclip fontconfig" ;;
-    pacman) echo "git curl tar unzip base-devel ripgrep fd imagemagick npm python wl-clipboard xclip fontconfig rust-analyzer rust-src lazygit" ;;
+    pacman) echo "git curl tar unzip base-devel ripgrep fd imagemagick npm python wl-clipboard xclip fontconfig rust-analyzer rust-src lazygit starship ttf-jetbrains-mono-nerd" ;;
     zypper) echo "git curl tar unzip gcc gcc-c++ make ripgrep fd ImageMagick npm python3 wl-clipboard xclip fontconfig" ;;
     apk)    echo "git curl tar unzip build-base ripgrep fd imagemagick npm python3 wl-clipboard xclip fontconfig" ;;
-    brew)   echo "git curl ripgrep fd imagemagick node python3 lazygit" ;;
+    brew)   echo "git curl ripgrep fd imagemagick node python3 lazygit starship" ;;
     *)      echo "" ;;
   esac
 }
@@ -151,7 +159,13 @@ if [ "$INSTALL_TOOLS" = "1" ] && [ -n "$PM" ]; then
   # the native vim.lsp.config API, and nvim-treesitter's main branch requires
   # 0.12+. Debian stable in particular ships something much older, so prefer the
   # official AppImage.
-  if ! have nvim || ! nvim --version | head -1 | grep -qE 'v0\.(1[2-9]|[2-9][0-9])'; then
+  # Version read through a command substitution, not a live pipeline: `head -1`
+  # exits early, and under `set -o pipefail` that turns a SIGPIPE upstream into a
+  # failed test. It happens to survive today only because `nvim --version` fits
+  # in the pipe buffer before head closes it — a race, not a guarantee. See the
+  # long note in section 3.
+  NVIM_VERSION_LINE="$(nvim --version 2>/dev/null | head -1 || true)"
+  if ! have nvim || ! [[ "$NVIM_VERSION_LINE" =~ v0\.(1[2-9]|[2-9][0-9]) ]]; then
     step "Installing Neovim 0.12+ (AppImage)"
     warn "distro Neovim is absent or older than 0.12; this config needs 0.12+"
     mkdir -p "$HOME/.local/bin"
@@ -244,16 +258,58 @@ elif [ "$MISSING" = "1" ]; then
 fi
 
 # ── 3. Nerd Font ──────────────────────────────────────────────────────────────
+# Checks for the font the terminal config actually ASKS for, not for "any Nerd
+# Font". The old check was `fc-list | grep -qi 'nerd font'`, which had TWO
+# independent bugs, and each on its own was enough to make it lie:
+#
+#   1. It asked the wrong question. It passed on a machine carrying Meslo and
+#      Fantasque while ghostty/config requested JetBrainsMono, so Ghostty
+#      silently fell back to a default font and the check reported all fine. An
+#      unsatisfiable font request is invisible: nothing errors, the glyphs are
+#      just wrong.
+#
+#   2. **`grep -q` at the end of a pipeline is unsafe under `set -o pipefail`**
+#      (line 19). `grep -q` exits the moment it matches; the process upstream
+#      then dies of SIGPIPE writing to a closed pipe, the pipeline's status
+#      becomes 141, and pipefail hands that to the `if`. So the check reported
+#      "No Nerd Font detected" on a machine with 84 of them — a MATCH read as a
+#      failure. Verified directly:
+#        set -euo pipefail; fc-list | grep -qi "nerd font"; echo $?   -> 141
+#        set -eu;           fc-list | grep -qi "nerd font"; echo $?   -> 0
+#      The fix is to collect the output first and match against a here-string:
+#      no pipe, nothing to break. Anywhere in this file that a pipeline ends in
+#      an early-exiting command (`grep -q`, `head`), it needs this treatment.
 step "Checking for a Nerd Font"
-if have fc-list && fc-list 2>/dev/null | grep -qi "nerd font"; then
-  ok "a Nerd Font is installed"
+# Parsed out of ghostty/config so the two can never drift; the fallback is only
+# for a checkout where that file is missing.
+WANTED_FONT="$(sed -n 's/^font-family[[:space:]]*=[[:space:]]*//p' "$REPO_ROOT/ghostty/config" 2>/dev/null | head -1)"
+WANTED_FONT="${WANTED_FONT:-JetBrainsMono Nerd Font}"
+# `sort -u` reads its input to the end, so nothing in here can exit early.
+FONT_FAMILIES=""
+have fc-list && FONT_FAMILIES="$(fc-list : family 2>/dev/null | tr ',' '\n' | sort -u || true)"
+
+if ! have fc-list; then
+  warn "fontconfig (fc-list) missing — cannot check for $WANTED_FONT"
+elif grep -qixF "$WANTED_FONT" <<<"$FONT_FAMILIES"; then
+  ok "$WANTED_FONT is installed"
 else
-  warn "No Nerd Font detected — icons will render as boxes."
-  echo "         Install JetBrains Mono Nerd Font:"
+  warn "$WANTED_FONT is NOT installed — icons will render as boxes."
+  if grep -qi "nerd font" <<<"$FONT_FAMILIES"; then
+    # Worth saying explicitly: this is the case that used to pass silently.
+    echo "         (Other Nerd Fonts are installed, but ghostty/config asks for"
+    echo "          this one by name, so Ghostty falls back to a default font.)"
+  fi
+  case "$PM" in
+    pacman) echo "         sudo pacman -S ttf-jetbrains-mono-nerd" ;;
+    apt)    echo "         sudo apt install fonts-jetbrains-mono   # not Nerd-patched on older releases" ;;
+    dnf)    echo "         sudo dnf install jetbrains-mono-fonts" ;;
+    brew)   echo "         brew install --cask font-jetbrains-mono-nerd-font" ;;
+  esac
+  echo "         Or, with no root, straight into your user font directory:"
   echo "           mkdir -p ~/.local/share/fonts && cd ~/.local/share/fonts"
   echo "           curl -fLO https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
-  echo "           unzip -o JetBrainsMono.zip && fc-cache -fv"
-  echo "         Then set it in ~/.config/wezterm/wezterm.lua (config.font)."
+  echo "           unzip -o JetBrainsMono.zip && fc-cache -f"
+  echo "         The name must match ghostty/config's font-family exactly."
 fi
 
 # ── 4. Link the config ────────────────────────────────────────────────────────
@@ -354,45 +410,392 @@ if [ "$OS" = "Linux" ]; then
   # Starship reads $STARSHIP_CONFIG if set, else ~/.config/starship.toml — a bare
   # file, not a directory, so this is one copy rather than a linked folder.
   install_file "starship/starship.toml" "${STARSHIP_CONFIG:-$CONFIG_HOME/starship.toml}" "starship"
-  if have starship; then
-    ok "starship on PATH"
-  else
+  if ! have starship; then
     warn "starship missing — the config is in place but nothing reads it yet"
     echo "         Arch: sudo pacman -S starship   ·  otherwise: https://starship.rs"
+  else
+    ok "starship on PATH"
+
+    # Copying starship.toml is only two thirds of the job: the prompt does not
+    # appear until the SHELL initialises starship, and that line lives in the
+    # shell's rc file, which this repo does not ship (it is per-machine — CachyOS
+    # sources its own fish config, Debian does not). Without it the prompt config
+    # sits on disk doing nothing, looking installed. So: check the login shell's
+    # rc file and print the exact line if it is missing. This does NOT edit the
+    # rc file — an installer silently rewriting a shell rc is how a prompt ends
+    # up initialised twice, or ahead of the framework that overrides it.
+    #
+    # The login shell comes from the passwd entry, not $SHELL: on this machine
+    # $SHELL still reads /usr/bin/zsh in some spawned environments while the
+    # actual login shell is /bin/fish.
+    LOGIN_SHELL="$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7)"
+    LOGIN_SHELL="$(basename "${LOGIN_SHELL:-$SHELL}")"
+    case "$LOGIN_SHELL" in
+      fish) SHELL_RC="$CONFIG_HOME/fish/config.fish"; INIT_LINE='starship init fish | source' ;;
+      zsh)  SHELL_RC="$HOME/.zshrc";                  INIT_LINE='eval "$(starship init zsh)"' ;;
+      bash) SHELL_RC="$HOME/.bashrc";                 INIT_LINE='eval "$(starship init bash)"' ;;
+      *)    SHELL_RC=""; INIT_LINE="" ;;
+    esac
+    if [ -z "$SHELL_RC" ]; then
+      warn "unrecognised login shell ($LOGIN_SHELL) — see https://starship.rs/#quick-install"
+    elif [ -f "$SHELL_RC" ] && grep -q "starship init" "$SHELL_RC"; then
+      ok "starship is initialised in $SHELL_RC"
+    else
+      warn "starship is NOT initialised in your shell — the prompt will not appear"
+      echo "         Add this to $SHELL_RC (last line, so it wins):"
+      echo "           $INIT_LINE"
+    fi
   fi
 fi
 
 # ── 6. WezTerm config ─────────────────────────────────────────────────────────
 # The WezTerm config is NOT part of this repo (by design — it is one file), but it
 # lives at a path that is identical on both platforms, so mention it.
+#
+# Only mentioned when WezTerm is actually installed. It used to warn
+# unconditionally, which on a Ghostty machine is a permanent warning about a file
+# that will never exist, for a terminal that is not in use — and a warning nobody
+# can act on trains you to skim past the ones that matter.
 step "WezTerm"
 WEZ_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}/wezterm/wezterm.lua"
 if [ -f "$WEZ_TARGET" ]; then
   ok "found $WEZ_TARGET"
-else
-  warn "no WezTerm config at $WEZ_TARGET"
+elif have wezterm; then
+  warn "wezterm is installed but has no config at $WEZ_TARGET"
   echo "         Copy it from your other machine — the path is the same on"
   echo "         Windows and Linux, so the file needs no changes."
+else
+  ok "not installed — skipped (Ghostty is this setup's terminal)"
 fi
 
-# ── 7. Sync plugins ───────────────────────────────────────────────────────────
+# ── 7. Sync plugins, parsers and tools ────────────────────────────────────────
+#
+# All three steps drive Neovim headlessly, through small Lua drivers rather than
+# through the user commands (`:Lazy sync`, `:MasonInstall …`). Two reasons, both
+# found by this section failing on a fresh machine:
+#
+#   1. **A user command puts every item in one basket.** `:MasonInstall a b c …`
+#      reports one aggregate outcome, so one tool that 404s or times out reads as
+#      "the install step failed" with no way to tell what actually landed. The
+#      drivers install item by item, retry once, and report per item — getting 17
+#      of 18 tools is a far better outcome than stopping at the first hiccup.
+#
+#   2. **Installer stderr must be kept out of Neovim's error path.** In headless
+#      mode mason pipes each installer's stderr straight into `nvim_err_write`,
+#      and Neovim promotes an error message written while a `-c` command runs
+#      into a real command-line error. So one harmless line on stderr aborted the
+#      whole batch with:
+#
+#        Error in command line:
+#        Lua :command callback: …/lazy/core/handler/cmd.lua:48:
+#        Vim:npm warn install-scripts 1 package had install scripts blocked
+#        because they are not covered by allowScripts:
+#
+#      npm >= 12 blocks dependency install scripts by default and prints exactly
+#      that warning (verified on npm 12.0.2: it warns on stderr and still exits
+#      0). Every mason package had installed correctly; only the report was a
+#      lie. The drivers read the streams themselves, so installer output can
+#      never masquerade as a Neovim error, and it is printed only when a package
+#      genuinely fails.
+#
+# Nothing here aborts the script. Failures are collected and repeated once at the
+# end, with the in-editor command that retries them.
+SYNC_FAILURES=""
+
 if [ "$SYNC" = "1" ]; then
-  step "Installing plugins"
-  nvim --headless "+Lazy! sync" +qa 2>&1 | sed 's/^/    /' || true
+  if ! have nvim; then
+    err "nvim is not on PATH — skipping --sync"
+    SYNC_FAILURES="$SYNC_FAILURES nvim-missing"
+  else
+    SYNC_TMP="$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-sync.XXXXXX")"
+    KEEP_SYNC_TMP=0
+    # shellcheck disable=SC2064
+    trap '[ "$KEEP_SYNC_TMP" = "1" ] || rm -rf "$SYNC_TMP"' EXIT
 
-  step "Installing treesitter parsers"
-  # No 'jsonc' — it is an alias onto the 'json' parser, not a parser itself.
-  PARSERS="'lua','luadoc','vim','vimdoc','query','markdown','markdown_inline','bash','rust','python','typescript','javascript','tsx','json','yaml','toml','html','css','scss','regex','diff','git_config','git_rebase','gitcommit','gitignore','dockerfile','make','cmake','ninja','printf','xml','sql','ssh_config','comment','rst','requirements','jsdoc'"
-  nvim --headless "+lua require('nvim-treesitter').install({$PARSERS}):wait(900000)" +qa 2>&1 | sed 's/^/    /' || true
+    # Runs one Lua driver. The driver writes machine-readable
+    # "status<TAB>name<TAB>detail" lines to $DOTFILES_RESULTS; everything else it
+    # (and every plugin loaded alongside it) prints goes to the log, which is
+    # kept only when something failed. `-c 'qa!'` is separate from the driver so
+    # a driver that dies mid-way still leaves the results written so far.
+    run_driver() { # driver-file, results-file, log-file
+      DOTFILES_RESULTS="$2" nvim --headless -c "luafile $1" -c "qa!" >"$3" 2>&1 || true
+    }
 
-  step "Installing language servers and formatters"
-  MASON="lua-language-server basedpyright ruff vtsls eslint-lsp json-lsp yaml-language-server taplo bash-language-server marksman html-lsp css-lsp dockerfile-language-server stylua prettierd shfmt markdownlint-cli2 shellcheck"
-  # shellcheck disable=SC2086
-  nvim --headless "+MasonInstall $MASON" +qa 2>&1 | tail -5 | sed 's/^/    /' || true
+    # Renders a driver's results. Prints one line per non-ok item plus a count,
+    # because a healthy run has 18 servers and 37 parsers and nobody reads 55
+    # green lines. Returns 1 if anything failed.
+    report_results() { # results-file, log-file, noun
+      local results="$1" log="$2" noun="$3"
+      local status name detail done=0 present=0 failed=0
+      if [ ! -s "$results" ]; then
+        err "no $noun were reported — the driver never ran (see $log)"
+        return 1
+      fi
+      while IFS="$(printf '\t')" read -r status name detail; do
+        case "$status" in
+          ok)      done=$((done + 1)) ;;
+          present) present=$((present + 1)) ;;
+          skip)    warn "$name — $detail" ;;
+          *)       err "$name — ${detail:-failed}"; failed=$((failed + 1)) ;;
+        esac
+      done < "$results"
+      if [ "$failed" -gt 0 ]; then
+        ok "$((done + present)) $noun ready ($present already present)"
+        err "$failed failed — full output in $log"
+        return 1
+      fi
+      ok "$((done + present)) $noun ready ($present already present, $done installed)"
+      return 0
+    }
+
+    # ── 7a. Plugins ───────────────────────────────────────────────────────────
+    step "Installing plugins"
+    cat > "$SYNC_TMP/plugins.lua" <<'LUA'
+local results = assert(io.open(assert(vim.env.DOTFILES_RESULTS), "w"))
+local function emit(status, name, detail)
+  results:write(("%s\t%s\t%s\n"):format(status, name, ((detail or ""):gsub("%s+", " "))))
+  results:flush()
+end
+
+local ok_lazy, lazy = pcall(require, "lazy")
+if not ok_lazy then
+  emit("fail", "lazy.nvim", "lazy.nvim did not bootstrap: " .. tostring(lazy))
+  results:close()
+  return
+end
+
+-- Snapshot first: after the sync every plugin looks installed, so this is the
+-- only moment at which "already present" and "just fetched" can be told apart.
+local before = {}
+for name, plugin in pairs(require("lazy.core.config").plugins) do
+  before[name] = plugin._.installed and true or false
+end
+
+-- wait = true blocks until every clone/checkout finishes; show = false keeps
+-- lazy's floating window out of a headless run (it renders as noise in the log).
+pcall(lazy.sync, { wait = true, show = false })
+
+-- lazy.sync never errors on a plugin it could not fetch, so verify on disk:
+-- `p._.installed` is what lazy itself uses to decide a plugin is present.
+for _, plugin in pairs(require("lazy.core.config").plugins) do
+  if plugin._.installed then
+    emit(before[plugin.name] and "present" or "ok", plugin.name, "")
+  else
+    emit("fail", plugin.name, "not installed — check the network and `:Lazy`")
+  end
+end
+results:close()
+LUA
+    run_driver "$SYNC_TMP/plugins.lua" "$SYNC_TMP/plugins.tsv" "$SYNC_TMP/plugins.log"
+    report_results "$SYNC_TMP/plugins.tsv" "$SYNC_TMP/plugins.log" "plugins" \
+      || { SYNC_FAILURES="$SYNC_FAILURES plugins"; KEEP_SYNC_TMP=1; }
+
+    # ── 7b. Treesitter parsers ────────────────────────────────────────────────
+    step "Installing treesitter parsers"
+    echo "  this compiles each parser with the tree-sitter CLI — a few minutes on a cold cache"
+    # Kept in sync by hand with `parser_groups` in lua/plugins/treesitter.lua,
+    # which is the config's source of truth (it is a local table there, so there
+    # is nothing to require from here). No 'jsonc' — it is an alias onto the
+    # 'json' parser, not a parser itself.
+    export DOTFILES_PARSERS="lua luadoc vim vimdoc query markdown markdown_inline bash rust python typescript javascript tsx json yaml toml html css scss regex diff git_config git_rebase gitcommit gitignore dockerfile make cmake ninja printf xml sql ssh_config comment rst requirements jsdoc"
+    cat > "$SYNC_TMP/parsers.lua" <<'LUA'
+local results = assert(io.open(assert(vim.env.DOTFILES_RESULTS), "w"))
+local function emit(status, name, detail)
+  results:write(("%s\t%s\t%s\n"):format(status, name, ((detail or ""):gsub("%s+", " "))))
+  results:flush()
+end
+
+local wanted = vim.split(vim.trim(vim.env.DOTFILES_PARSERS or ""), "%s+", { trimempty = true })
+
+local ok_ts, ts = pcall(require, "nvim-treesitter")
+if not ok_ts then
+  emit("fail", "nvim-treesitter", tostring(ts))
+  results:close()
+  return
+end
+
+local function installed()
+  local ok, list = pcall(ts.get_installed, "parsers")
+  return ok and vim.iter(list):fold({}, function(acc, lang)
+    acc[lang] = true
+    return acc
+  end) or {}
+end
+
+local have = installed()
+local missing = vim.tbl_filter(function(lang)
+  return not have[lang]
+end, wanted)
+
+-- One batch pass first: install() compiles several parsers concurrently, which
+-- is minutes faster than a serial loop over 37 of them. It returns a boolean
+-- rather than raising per parser, so the result is checked on disk below.
+if #missing > 0 then
+  pcall(function()
+    ts.install(missing, { max_jobs = 4 }):wait(1800000)
+  end)
+end
+
+-- Whatever the batch missed is retried alone, so one parser whose grammar fails
+-- to compile (or whose download raced) cannot take the rest down with it, and
+-- its own error is the one that gets reported.
+have = installed()
+for _, lang in ipairs(wanted) do
+  if have[lang] then
+    emit(vim.tbl_contains(missing, lang) and "ok" or "present", lang, "")
+  else
+    local ok, err = pcall(function()
+      ts.install({ lang }, { max_jobs = 1 }):wait(600000)
+    end)
+    if installed()[lang] then
+      emit("ok", lang, "")
+    else
+      emit("fail", lang, ok and "did not compile — see :checkhealth nvim-treesitter" or tostring(err))
+    end
+  end
+end
+results:close()
+LUA
+    run_driver "$SYNC_TMP/parsers.lua" "$SYNC_TMP/parsers.tsv" "$SYNC_TMP/parsers.log"
+    report_results "$SYNC_TMP/parsers.tsv" "$SYNC_TMP/parsers.log" "parsers" \
+      || { SYNC_FAILURES="$SYNC_FAILURES parsers"; KEEP_SYNC_TMP=1; }
+
+    # ── 7c. Language servers, formatters and linters ──────────────────────────
+    step "Installing language servers and formatters"
+    echo "  downloading via mason — npm/pip/github, so this needs the network"
+    # Kept in sync by hand with the `servers` list in lua/plugins/lsp.lua and
+    # `ensure_installed` in the mason-tool-installer spec there. Names are mason
+    # package names, which differ from server names (`eslint` -> `eslint-lsp`).
+    export DOTFILES_MASON="lua-language-server basedpyright ruff vtsls eslint-lsp json-lsp yaml-language-server taplo bash-language-server marksman html-lsp css-lsp dockerfile-language-server stylua prettierd shfmt markdownlint-cli2 shellcheck"
+    cat > "$SYNC_TMP/mason.lua" <<'LUA'
+local results = assert(io.open(assert(vim.env.DOTFILES_RESULTS), "w"))
+local function emit(status, name, detail)
+  results:write(("%s\t%s\t%s\n"):format(status, name, ((detail or ""):gsub("%s+", " "))))
+  results:flush()
+end
+
+local wanted = vim.split(vim.trim(vim.env.DOTFILES_MASON or ""), "%s+", { trimempty = true })
+
+-- mason.nvim is lazy-loaded on `:Mason*`, and this driver never runs those
+-- commands, so ask lazy for it by name instead of relying on a side effect.
+pcall(function()
+  require("lazy").load({ plugins = { "mason.nvim" } })
+end)
+
+local ok_registry, registry = pcall(require, "mason-registry")
+if not ok_registry then
+  emit("fail", "mason.nvim", "mason is not installed: " .. tostring(registry))
+  results:close()
+  return
+end
+
+-- The registry index has to be fetched before any package can be resolved. A
+-- stale-but-present index is still usable, so a refresh that fails or times out
+-- is a warning, not a stop.
+local refreshed = false
+pcall(registry.refresh, function()
+  refreshed = true
+end)
+if not vim.wait(180000, function()
+  return refreshed
+end, 100) then
+  emit("skip", "mason-registry", "refresh timed out — using the cached registry")
+end
+
+local TIMEOUT = tonumber(vim.env.DOTFILES_MASON_TIMEOUT or "") or 600000
+
+--- Runs one install to completion. Returns ok, detail.
+--- Both streams are captured here rather than forwarded, which is the whole
+--- point of this driver — see the long comment in install.sh.
+local function attempt(pkg)
+  local output, done, succeeded, err = {}, false, false, nil
+  local handle = pkg:install({}, function(success, install_err)
+    succeeded, err, done = success, install_err, true
+  end)
+  handle:on("stdout", function(chunk)
+    output[#output + 1] = chunk
+  end)
+  handle:on("stderr", function(chunk)
+    output[#output + 1] = chunk
+  end)
+
+  if not vim.wait(TIMEOUT, function()
+    return done
+  end, 200) then
+    pcall(function()
+      handle:terminate()
+    end)
+    return false, ("timed out after %ds"):format(TIMEOUT / 1000)
+  end
+
+  if succeeded then
+    return true, nil
+  end
+
+  -- Report the installer's own last words; they name the actual cause (a 404, a
+  -- missing python3, a proxy refusing the connection) far more often than
+  -- mason's wrapper error does.
+  local last
+  for line in table.concat(output):gmatch("[^\r\n]+") do
+    if vim.trim(line) ~= "" then
+      last = vim.trim(line)
+    end
+  end
+  return false, table.concat(vim.tbl_filter(function(s)
+    return s ~= nil and s ~= ""
+  end, { err and tostring(err) or nil, last }), " | ")
+end
+
+for _, name in ipairs(wanted) do
+  local ok_pkg, pkg = pcall(registry.get_package, name)
+  if not ok_pkg then
+    -- A renamed or dropped mason package: report the name, keep going.
+    emit("fail", name, "not a mason package (renamed or removed?)")
+  elseif pkg:is_installed() then
+    emit("present", name, "")
+  else
+    local ok, detail = attempt(pkg)
+    if not ok then
+      -- One retry. Most failures here are transient — a registry mirror hiccup,
+      -- a half-written download — and cost seconds to redo.
+      vim.wait(2000)
+      local retry_ok, retry_detail = attempt(pkg)
+      ok, detail = retry_ok, retry_detail or detail
+    end
+    emit(ok and "ok" or "fail", name, detail)
+  end
+end
+results:close()
+LUA
+    run_driver "$SYNC_TMP/mason.lua" "$SYNC_TMP/mason.tsv" "$SYNC_TMP/mason.log"
+    report_results "$SYNC_TMP/mason.tsv" "$SYNC_TMP/mason.log" "tools" \
+      || { SYNC_FAILURES="$SYNC_FAILURES tools"; KEEP_SYNC_TMP=1; }
+  fi
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 step "Done"
+
+# A partial sync leaves a working editor with gaps, and the gaps are invisible
+# until you open a file of the affected language. Repeat them here, with the
+# in-editor command that retries each — re-running install.sh is never required,
+# every one of these is fixable from inside Neovim.
+if [ -n "$SYNC_FAILURES" ]; then
+  warn "some items did not install:"
+  case "$SYNC_FAILURES" in
+    *plugins*) echo "         plugins  — open Neovim and run  :Lazy sync" ;;
+  esac
+  case "$SYNC_FAILURES" in
+    *parsers*) echo "         parsers  — :checkhealth nvim-treesitter, then  :TSInstall <lang>" ;;
+  esac
+  case "$SYNC_FAILURES" in
+    *tools*)   echo "         tools    — :Mason, then  i  on the package to retry it" ;;
+  esac
+  echo "         The failing item's own error is printed above, and the full"
+  echo "         log was kept at the path named next to it."
+  echo
+fi
+
 cat <<'EOF'
   Start Neovim with:  nvim
 
