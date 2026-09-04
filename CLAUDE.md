@@ -81,6 +81,21 @@ works and stays. **Keep** every `is_win` branch in `options.lua` (notably the
 pwsh `'shell'` block), `install.ps1`, and `.gitattributes`' CRLF rule for
 `*.ps1`. Do not extend, optimise or test the Windows paths unless asked.
 
+**WezTerm, fastfetch and the PowerShell profile are tracked, Windows-only,
+copied by `install.ps1` only.** `wezterm/wezterm.lua` → `~/.config/wezterm/`,
+`fastfetch/config.jsonc` → `~/.config/fastfetch/`, `powershell/profile.ps1` →
+`$PROFILE` (resolved live — it is OneDrive-redirected on this machine, not a
+fixed path a repo file can hardcode). Same copied-not-linked reasoning as
+Ghostty/starship above. `install.sh` deliberately never touches any of the
+three — the active Linux terminal is Ghostty, so there is no path by which a
+Windows tweak here reaches the Linux install.
+
+`config.enable_kitty_keyboard = false` in `wezterm/wezterm.lua` is deliberate:
+left on, WezTerm's kitty-keyboard/CSI-u protocol broke Shift entirely inside
+Claude Code's CLI (a Node/Ink TUI that doesn't unpack those sequences
+correctly) — no capitals, no shifted punctuation. See the comment at that line
+before re-enabling it.
+
 ---
 
 ## 2. Repo map
@@ -95,6 +110,9 @@ dotfiles/
 ├── .gitignore                   ignores lua/config/local.lua; NOT lazy-lock.json
 ├── ghostty/config               terminal config; COPIED to ~/.config/ghostty/ (Linux)
 ├── starship/starship.toml       prompt config; COPIED to ~/.config/ (Linux)
+├── wezterm/wezterm.lua          terminal config; COPIED to ~/.config/wezterm/ (Windows, install.ps1 only)
+├── fastfetch/config.jsonc       startup info + WezTerm cheatsheet; COPIED to ~/.config/fastfetch/ (Windows)
+├── powershell/profile.ps1       $PROFILE; COPIED by install.ps1 (Windows)
 ├── docs/
 │   ├── ADDING-A-LANGUAGE.md     five-edit worked example (Go) + how to add nvim-dap
 │   └── KEYBINDINGS.md           convenience copy; live keymap table is the truth
@@ -223,8 +241,11 @@ no registration step. A third level would need a third `import` line.
 | treesitter behaviour | the `ts` options table at the top of `lua/plugins/treesitter.lua` |
 | a mason-installed tool | `ensure_installed` in `lua/plugins/lsp.lua` |
 | an autocommand | `lua/config/autocmds.lua` |
-| a terminal setting | `ghostty/config`, then re-run `install.sh` to push it out |
+| a terminal setting (Linux) | `ghostty/config`, then re-run `install.sh` to push it out |
 | the shell prompt | `starship/starship.toml`, same — it is copied, not linked |
+| a terminal setting (Windows) | `wezterm/wezterm.lua`, then re-run `install.ps1` to push it out |
+| startup info / WezTerm cheatsheet | `fastfetch/config.jsonc` |
+| the Windows PowerShell profile | `powershell/profile.ps1`, same copied-not-linked pattern |
 | machine-specific anything | `lua/config/local.lua` (git-ignored) — never commit it |
 
 `lua/plugins/*.lua` is one file per *concern*; `lua/plugins/lang/*.lua` is one

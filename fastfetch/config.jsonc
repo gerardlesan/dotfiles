@@ -1,0 +1,57 @@
+// ~/.config/fastfetch/config.jsonc
+//
+// Runs once per new WezTerm PowerShell tab (see powershell/profile.ps1), gated
+// on $env:WEZTERM_PANE so it never fires in VS Code's terminal, a plain
+// PowerShell window, or a WSL session. Two jobs in one config: the usual
+// system-info panel, and — below the first "break" — a WezTerm cheatsheet,
+// since this terminal isn't used daily enough to have the bindings memorised.
+//
+// TRACKED IN THE REPO, DEPLOYED ONLY ON WINDOWS by install.ps1, which copies
+// this to ~/.config/fastfetch/config.jsonc and passes it explicitly via
+// `fastfetch --config <path>` rather than relying on fastfetch's own
+// OS-specific config-discovery rules.
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo": {
+        // Explicit rather than auto-detected, so it's always this one logo,
+        // not whatever fastfetch's OS-version sniffing picks on a given
+        // Windows build. fastfetch's built-in "windows11" logo already
+        // renders in Windows blue — nothing to hand-author.
+        "source": "windows11"
+    },
+    "display": {
+        "separator": " "
+    },
+    "modules": [
+        "title",
+        "separator",
+        "os",
+        "host",
+        "kernel",
+        "uptime",
+        "terminal",
+        "shell",
+        "cpu",
+        "memory",
+        "break",
+        { "type": "custom", "format": "WezTerm cheatsheet" },
+        { "type": "custom", "format": "───────────────────" },
+        { "type": "custom", "format": "New tab                   Ctrl+Shift+T" },
+        { "type": "custom", "format": "New tab in WSL (Debian)   Ctrl+Shift+D" },
+        { "type": "custom", "format": "Back to PowerShell tab    Ctrl+Alt+P" },
+        { "type": "custom", "format": "Close pane (closes tab    Ctrl+Shift+W" },
+        { "type": "custom", "format": "  once its last pane is gone)" },
+        { "type": "custom", "format": "Split right / down        Ctrl+Shift+| / _" },
+        { "type": "custom", "format": "Move between panes        Ctrl+Shift+h/j/k/l" },
+        { "type": "custom", "format": "Next / previous tab       Ctrl+Shift+] / [" },
+        { "type": "custom", "format": "Tab picker                Ctrl+Shift+E" },
+        { "type": "custom", "format": "Rename tab                Ctrl+Shift+R" },
+        { "type": "custom", "format": "Zoom pane                 Ctrl+Shift+Z" },
+        { "type": "custom", "format": "Search scrollback         Ctrl+Shift+/" },
+        { "type": "custom", "format": "Copy mode                 Ctrl+Shift+X" },
+        { "type": "custom", "format": "Quick select (urls/paths) Ctrl+Shift+S" },
+        { "type": "custom", "format": "Command launcher          Ctrl+Shift+P" },
+        "break",
+        "colors"
+    ]
+}

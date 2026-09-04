@@ -363,8 +363,11 @@ if [ "$OS" = "Linux" ]; then
 fi
 
 # ── 6. WezTerm config ─────────────────────────────────────────────────────────
-# The WezTerm config is NOT part of this repo (by design — it is one file), but it
-# lives at a path that is identical on both platforms, so mention it.
+# The WezTerm config IS tracked in this repo now (wezterm/wezterm.lua), but this
+# script deliberately does not deploy it — it is copied out only by install.ps1.
+# The active Linux terminal is Ghostty (§5 above); WezTerm is Windows-only
+# tinkering, and there is no path here by which editing that file reaches this
+# script. It lives at a path that is identical on both platforms, so mention it.
 step "WezTerm"
 WEZ_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}/wezterm/wezterm.lua"
 if [ -f "$WEZ_TARGET" ]; then

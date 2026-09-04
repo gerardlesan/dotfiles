@@ -12,6 +12,13 @@
     Mode, while a junction requires neither. Neovim, git and every plugin follow
     junctions transparently, so there is no downside for a same-volume link.
 
+    Also COPIES wezterm/wezterm.lua, fastfetch/config.jsonc and
+    powershell/profile.ps1 into place (copied, not linked — same reasoning as
+    ghostty/config and starship/starship.toml on the Linux side in install.sh:
+    these get retuned live, and a symlink would turn every experiment into an
+    uncommitted repo change). Existing files are backed up with a timestamp
+    first. This step is Windows-only and has no install.sh counterpart.
+
 .PARAMETER InstallTools
     Install any missing external tools via winget.
 
@@ -72,6 +79,8 @@ $Tools = [ordered]@{
     'magick'        = @{ Id = 'ImageMagick.ImageMagick';   Why = 'image viewing (non-PNG conversion)';  Required = $false }
     'tree-sitter'   = @{ Id = $null;                       Why = 'treesitter parser generator';         Required = $true  }
     'rust-analyzer' = @{ Id = $null;                       Why = 'Rust LSP';                            Required = $false }
+    'wezterm'       = @{ Id = 'wez.wezterm';                Why = 'the terminal this config targets';    Required = $true  }
+    'fastfetch'     = @{ Id = 'Fastfetch-cli.Fastfetch';    Why = 'startup info + WezTerm cheatsheet';   Required = $false }
 }
 
 $missing = @()
@@ -218,7 +227,51 @@ Write-Host "  plugin + state directory: $dataDir"
 Write-Host "  (delete it for a completely clean reinstall)"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4. Sync plugins
+# 4. WezTerm, fastfetch and PowerShell profile
+# ─────────────────────────────────────────────────────────────────────────────
+# COPIED, not linked — see the .DESCRIPTION comment at the top of this file.
+# Skips silently when source and target already match, so re-running is quiet;
+# backs up an existing, differing target with a timestamp, same as install.sh
+# does for ghostty/starship on Linux.
+Write-Step "WezTerm, fastfetch and PowerShell profile"
+
+function Install-DotfileCopy {
+    param([string]$Src, [string]$Dst, [string]$Name)
+
+    if (-not (Test-Path $Src)) {
+        Write-Warn2 "$Name`: nothing to install at $Src"
+        return
+    }
+    if ((Test-Path $Dst) -and ((Get-FileHash $Src).Hash -eq (Get-FileHash $Dst).Hash)) {
+        Write-Ok "$Name`: $Dst already up to date"
+        return
+    }
+    if (Test-Path $Dst) {
+        $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+        $backup = "$Dst.backup-$stamp"
+        Write-Warn2 "$Name`: $Dst exists and differs"
+        if (-not $Force) {
+            $answer = Read-Host "  Back it up to $(Split-Path -Leaf $backup) and overwrite? [y/N]"
+            if ($answer -notmatch '^[Yy]') { Write-Warn2 "$Name`: skipped"; return }
+        }
+        Move-Item $Dst $backup
+        Write-Ok "$Name`: backed up to $backup"
+    }
+    New-Item -ItemType Directory -Force (Split-Path -Parent $Dst) | Out-Null
+    Copy-Item $Src $Dst -Force
+    Write-Ok "$Name`: installed $Dst"
+}
+
+Install-DotfileCopy (Join-Path $RepoRoot 'wezterm\wezterm.lua') `
+    (Join-Path $env:USERPROFILE '.config\wezterm\wezterm.lua') 'wezterm'
+Install-DotfileCopy (Join-Path $RepoRoot 'fastfetch\config.jsonc') `
+    (Join-Path $env:USERPROFILE '.config\fastfetch\config.jsonc') 'fastfetch'
+# $PROFILE is OneDrive-redirected on this machine and isn't something the repo
+# file can hardcode — resolve it live rather than assuming a fixed path.
+Install-DotfileCopy (Join-Path $RepoRoot 'powershell\profile.ps1') $PROFILE 'PowerShell profile'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. Sync plugins
 # ─────────────────────────────────────────────────────────────────────────────
 if ($Sync) {
     Write-Step "Installing plugins (this takes a minute on a fresh install)"
@@ -254,6 +307,9 @@ Write-Host @"
     <Space>gg          lazygit
     :CheckIcons        verify your font renders the icons
     :checkhealth       diagnose anything still missing
+
+  New WezTerm PowerShell tab: fastfetch prints system info plus a WezTerm
+  keybinding cheatsheet automatically. Edit fastfetch/config.jsonc to change it.
 
   If icons look wrong, the font is set in WezTerm, not Neovim:
     ~/.config/wezterm/wezterm.lua
