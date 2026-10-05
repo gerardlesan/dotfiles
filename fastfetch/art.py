@@ -354,7 +354,7 @@ def scene_petrova(t, cw, ch):
         qx = sx + 0.16 * np.sin(np.pi * q) * (1 - q) + 0.06 * np.sin(TAU * q)
         qy = sy + (top + 0.02 - sy) * q
         rc = cell(qx, qy)
-        if rc in seen or not (0 <= rc[0] < ROWS and 0 <= rc[1] < COLS):
+        if rc in seen or rc[0] <= row or not (0 <= rc[0] < ROWS and 0 <= rc[1] < COLS):   # below the sun's row only
             continue
         seen.add(rc)
         dq = 0.01                                              # screen slope, in cells per cell
