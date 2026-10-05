@@ -349,20 +349,28 @@ def scene_petrova(t, cw, ch):
     # often came out blank and the line seemed to start mid-air. Its path gets a
     # dim stroke wherever nothing else landed — `|`, or `/` `\` where it leans —
     # so the line always visibly points back at the sun.
-    seen = {(row, col)}
+    rows_done = {row}                                          # one stroke per row: two read as a double bar
     for q in np.linspace(0.0, 0.45, 60):
         qx = sx + 0.16 * np.sin(np.pi * q) * (1 - q) + 0.06 * np.sin(TAU * q)
         qy = sy + (top + 0.02 - sy) * q
         rc = cell(qx, qy)
-        if rc in seen or rc[0] <= row or not (0 <= rc[0] < ROWS and 0 <= rc[1] < COLS):   # below the sun's row only
+        if rc[0] in rows_done or rc[0] <= row or not (0 <= rc[0] < ROWS and 0 <= rc[1] < COLS):   # below the sun's row only
             continue
-        seen.add(rc)
+        rows_done.add(rc[0])
         dq = 0.01                                              # screen slope, in cells per cell
         dx = (0.16 * (np.pi * np.cos(np.pi * q) * (1 - q) - np.sin(np.pi * q)) + 0.06 * TAU * np.cos(TAU * q)) * dq * half / cw
         dy = (top + 0.02 - sy) * dq * half / ch
         slope = dx / abs(dy)
         g = "|" if abs(slope) < 0.35 else ("/" if slope < 0 else "\\")
         marks.append((rc[0], rc[1], g, hexrgb("#c4141f"), 0.18 + 0.5 * q, False))
+    # Around the sun, only the sun and that first stroke: stray particles there
+    # flickered in as `_` beside the stroke and muddied the point of origin.
+    keep = {(m[0], m[1]) for m in marks[:2]}
+    for dr in (-1, 0, 1):
+        for dc in (-2, -1, 0, 1, 2):
+            rc = (row + dr, col + dc)
+            if rc not in keep and 0 <= rc[0] < ROWS and 0 <= rc[1] < COLS:
+                marks.append((rc[0], rc[1], " ", STAR, 0.0, True))
     return light, sky, (edges, density), marks
 
 
