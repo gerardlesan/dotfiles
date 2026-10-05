@@ -321,10 +321,16 @@ if [ ! -d "$NVIM_SOURCE" ]; then
 fi
 
 if [ -L "$NVIM_TARGET" ]; then
-  CURRENT="$(readlink -f "$NVIM_TARGET")"
+  # `|| readlink`: a link left behind when the repo MOVED dangles, and
+  # `readlink -f` on a dangling link whose parent is gone exits non-zero —
+  # which, under `set -e`, used to end this script silently right here. The
+  # plain `readlink` still names the stale target, so it can be reported and
+  # replaced.
+  CURRENT="$(readlink -f "$NVIM_TARGET" || readlink "$NVIM_TARGET")"
   if [ "$CURRENT" = "$(readlink -f "$NVIM_SOURCE")" ]; then
     ok "already linked: $NVIM_TARGET -> $NVIM_SOURCE"
   else
+    [ -e "$NVIM_TARGET" ] || warn "$NVIM_TARGET is dangling (the repo moved?)"
     warn "$NVIM_TARGET points at $CURRENT"
     if [ "$FORCE" != "1" ]; then
       read -r -p "  Replace it? [y/N] " ans

@@ -172,8 +172,13 @@ if ($nerd) {
 # ─────────────────────────────────────────────────────────────────────────────
 Write-Step "Linking Neovim config"
 
-if (Test-Path $NvimTarget) {
-    $item = Get-Item $NvimTarget -Force
+# Get-Item -Force, NOT Test-Path: Test-Path follows a junction, so one left
+# dangling by moving the repo reads as "absent" — and New-Item below then fails
+# because the stale junction is still sitting there. Get-Item -Force returns
+# the reparse point itself whether or not its target exists. (Written on Linux
+# for parity with install.sh's dangling-symlink fix; not yet run on Windows.)
+$item = Get-Item $NvimTarget -Force -ErrorAction SilentlyContinue
+if ($item) {
 
     # Already linked to the right place? Nothing to do.
     if ($item.LinkType -and $item.Target -and ($item.Target -contains $NvimSource)) {
