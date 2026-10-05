@@ -335,9 +335,9 @@ autocmd("FileType", {
   group = augroup("formatoptions"),
   desc = "Normalise formatoptions after ftplugins run",
   callback = function()
-    -- Never auto-wrap code, whatever the ftplugin thinks. markdown and gitcommit
-    -- opt back in explicitly in their own ftplugin files.
-    if not vim.tbl_contains({ "markdown", "text", "gitcommit", "rst" }, vim.bo.filetype) then
+    -- Never auto-wrap, whatever the ftplugin thinks. gitcommit opts back in
+    -- explicitly in its own ftplugin file; markdown soft-wraps instead.
+    if not vim.tbl_contains({ "text", "gitcommit", "rst" }, vim.bo.filetype) then
       vim.opt_local.formatoptions:remove("t")
     end
   end,

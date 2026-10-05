@@ -29,8 +29,8 @@ return {
         sh = { "shellcheck" },
         bash = { "shellcheck" },
 
-        -- Markdown style: heading levels, list consistency, line length.
-        markdown = { "markdownlint-cli2" },
+        -- Markdown: no linter. Prose is not code; MD013/line-length and friends
+        -- are noise on soft-wrapped documents.
 
         -- ── Deliberately NOT listed, because an LSP already covers them ────
         -- python           → ruff, via after/lsp/ruff.lua

@@ -123,7 +123,6 @@ return {
         "prettierd", -- TS/JS/JSON/YAML/CSS/HTML/Markdown — daemon, fast
         "shfmt", -- shell
         -- Linters (see lua/plugins/lint.lua)
-        "markdownlint-cli2", -- markdown
         "shellcheck", -- shell
         -- Note: `ruff` covers both formatting and linting for Python and is
         -- installed as an LSP above, so it is not repeated here.

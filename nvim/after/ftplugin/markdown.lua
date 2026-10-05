@@ -13,24 +13,19 @@ vim.wo.wrap = true
 vim.wo.linebreak = true -- break at word boundaries, not mid-word
 vim.wo.breakindent = true -- wrapped list items stay indented under their bullet
 
--- Hard-wrap at 80 as you type. Unlike code, prose genuinely wants this: it keeps
--- diffs line-oriented, so a one-word edit does not reflow the whole paragraph.
-vim.bo.textwidth = 80
--- Re-add "t" (auto-wrap text), which the global 'formatoptions' removes and the
--- autocmd in lua/config/autocmds.lua deliberately leaves alone for markdown.
-vim.opt_local.formatoptions:append("t")
+-- Soft wrap only: one paragraph = one line in the file, the window decides where
+-- it breaks. No hard wrapping as you type ('t' stays off), so nothing reflows
+-- behind your back and no linter can complain about line length.
+vim.bo.textwidth = 0
 -- "n" makes wrapped numbered-list items line up under the text, not the number.
 vim.opt_local.formatoptions:append("n")
--- Do not auto-wrap a line that was already long before you touched it.
-vim.opt_local.formatoptions:append("l")
 
-vim.wo.colorcolumn = "" -- pointless with hard wrapping at 80
+vim.wo.colorcolumn = ""
 
--- ── Spell check: on ────────────────────────────────────────────────────────
--- This is the filetype where spell checking earns its keep. `]s` / `[s` to move
--- between misspellings, `z=` for suggestions, `zg` to add a word.
-vim.opt_local.spell = true
-vim.opt_local.spelllang = { "en_us" }
+-- ── Spell check: off ───────────────────────────────────────────────────────
+-- The red squiggles under every proper noun and technical term cost more than
+-- they catch. `:setlocal spell` when actually proofreading.
+vim.opt_local.spell = false
 
 -- ── Concealment: hide markup for readability ───────────────────────────────
 -- 2 = hide `**bold**` markers, link URLs, etc. The global setting is 0 because

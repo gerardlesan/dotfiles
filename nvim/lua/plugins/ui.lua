@@ -448,7 +448,18 @@ return {
       -- reading shows the pretty version. This is the setting that makes the
       -- plugin practical rather than annoying.
       render_modes = { "n", "v", "i", "c", "t" },
-      anti_conceal = { enabled = true }, -- reveal raw text on the cursor's line
+      -- Reveal the raw markup on the cursor's line in insert mode only. In
+      -- normal mode the rendered view stays intact — a revealed row is wider
+      -- than its rendered self, which is what knocks table columns out of line.
+      anti_conceal = {
+        enabled = true,
+        disabled_modes = { "n", "v", "V", "\22", "c", "t" },
+      },
+      -- Same idea for Vim's own conceal: hide `**` markers under the cursor
+      -- everywhere except insert mode.
+      win_options = {
+        concealcursor = { default = vim.o.concealcursor, rendered = "nvc" },
+      },
       heading = {
         sign = false,
         -- Coloured background bars for h1..h6, warm-to-cool so nesting is obvious.
