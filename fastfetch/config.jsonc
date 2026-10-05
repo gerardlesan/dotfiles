@@ -160,7 +160,7 @@
     {
       "type": "memory",
       "key": "  {#38;2;143;212;4}\udb80\udf5b {#38;2;87;159;2}memory  {#38;2;48;110;2} │ ",
-      "format": "{percentage-bar} {percentage} {used>7} / {total<8} ",
+      "format": "{percentage-bar} {percentage} {used} / {total}",
       "percent": {
         "green": 60,
         "yellow": 90
@@ -169,7 +169,7 @@
     {
       "type": "disk",
       "key": "  {#38;2;143;212;4}\udb80\udeca {#38;2;87;159;2}disk    {#38;2;48;110;2} │ ",
-      "format": "{size-percentage-bar} {size-percentage} {size-used>7} / {size-total<8} ",
+      "format": "{size-percentage-bar} {size-percentage} {size-used} / {size-total}",
       "folders": "/",
       "percent": {
         "green": 60,
