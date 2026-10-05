@@ -150,7 +150,7 @@
     {
       "type": "gpu",
       "key": "  {#38;2;143;212;4}\udb82\udc41 {#38;2;87;159;2}gpu     {#38;2;48;110;2} │ ",
-      "format": "{core-usage-bar} {core-usage-num} {name~15}",
+      "format": "{core-usage-bar} {core-usage-num} {name~15,24}L GPU     ",
       "driverSpecific": true,
       "percent": {
         "green": 60,
