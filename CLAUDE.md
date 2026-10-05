@@ -286,17 +286,31 @@ rust-analyzer's `files.watcher = "server"`).
 
 ### 4.7 Palette is the single source of colour
 
-`lua/config/palette.lua` exports `M.colors` (backgrounds, foregrounds, the red
+`lua/config/palette.lua` exports `M.colors` (backgrounds, foregrounds, the green
 accent family, syntax hues, diagnostics, git, and `terminal` ANSI 0-15),
 `M.style`, type-kind colours, `M.border` and the icon tables. Everything
 downstream — statusline, borders, syntax, git signs, `:terminal` colours —
 derives from it. **Never hard-code a hex value in a plugin spec.**
 
-The theme is Tokyonight "night", warm-shifted and re-accented around a gentle
-red, with two design rules worth preserving: red owns *chrome and control flow*
-(borders, cursor, mode, keywords), and red does **not** own *data* (strings stay
-green, numbers orange). `error` is intentionally a different, more saturated red
-than `accent` so a diagnostic never reads as a keyword.
+The theme is "Adrian": Tokyonight's engine with every palette slot (including
+its whole blue family) remapped to the Adrian greens shared with Ghostty,
+starship and fastfetch. Three design rules worth preserving: green owns
+*keywords* (and the cursor line number, matches, search); every other kind of
+word has its own hue in `M.syntax`, chosen by measured contrast (all ≥ 7.3:1)
+and OKLab distance between kinds that sit next to each other — the table and
+the numbers are in palette.lua, re-measure before changing one; and the
+*chrome is quiet* (borders, separators, the flat lualine theme in `ui.lua`
+carry no accent). Tokyonight's slot names (`c.green`, `c.yellow`) are for
+plugin surfaces only and do not describe the hue. Inlay hints are on in Rust
+only (`lang/rust.lua` on_attach). `error` is the Petrova red.
+
+**Verify a visual change by screenshot, not by reading highlight groups.** The
+2026-10 redesign drove the real config through `nvim --embed` as a UI
+(ext_linegrid), painted the grid with JetBrains Mono, and read the PNGs plus
+every `msg_show`/notifier entry. That is how the venv-selector branch notice,
+blink's `max_items` error and the colorcolumn "bar in the middle" were found —
+none shows up headless. Test Python *and* a Rust project (wait ~15 s for
+rust-analyzer).
 
 ---
 
@@ -554,6 +568,15 @@ cat /tmp/probe.txt
 
 **Test the dashboard from inside a git repo.** Its `enabled` guard is
 `Snacks.git.get_root() ~= nil`, so a whole class of bug is invisible outside one.
+
+**3b. Anything visual: `python3 tests/nvshot.py`.** Drives the real config as
+an embedded UI through four scenarios (Python on `fastfetch/art.py`, Rust on
+the `tests/rust-sample` crate — needs rust-analyzer, waits 15 s — the explorer
+with splits resized three ways, the dashboard), writes PNGs to `tests/shots/`
+(git-ignored), and exits 1 if Neovim printed an error/warning, anything hit the
+notifier at WARN+, or a Lua check failed (no colorcolumn, inlay hints off,
+current-line diagnostics, no `extends` chevrons). Then *look at the PNGs* —
+the asserts catch the mechanical part only. ~45 s.
 
 **4. Startup, before *and* after, same command both times:**
 

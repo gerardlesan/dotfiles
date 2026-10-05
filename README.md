@@ -3,8 +3,9 @@
 # dotfiles — Neovim + Ghostty
 
 A cross-platform, Lua-only Neovim configuration built for Rust, Python and
-TypeScript, with a warm red-accented Tokyonight theme matched between the editor
-and the terminal.
+TypeScript, with "Adrian" — a green theme drawn from the Project Hail Mary render
+in this repo, on Tokyonight's engine — matched between the editor, the terminal,
+the prompt and the shell greeting.
 
 Developed on Windows 11, now running on Linux (CachyOS, Wayland, Ghostty) — the
 move was one script. Windows support remains, but Linux is the primary target.
@@ -37,9 +38,15 @@ dashboard.
   meaningful Vim option grouped by purpose — including the ones deliberately left
   off, and a final section on legacy options you should never copy from an old
   vimrc. It is the reference, not just the settings.
-- **Red owns control flow, not data.** Keywords, operators, borders, the cursor and
-  the mode indicator are red; strings stay green and numbers orange. A config where
-  everything is one hue photographs well and is miserable to read code in.
+- **Every kind of word has its own colour; the chrome stays quiet.** Keywords
+  are Adrian's lime; functions azure, types teal, traits lavender, enums aqua,
+  variants lemon, macros orchid, strings sand, numbers orange, fields coral,
+  parameters pink — each ≥ 7.3:1 on the background, and the kinds that sit next
+  to each other (`self.field`, `Enum::Variant`, `fn name`, `x: Type`) picked to
+  be the furthest apart (measured, see `palette.lua`). Borders, separators and
+  the flat statusline sit a step above the background, Zed-style. Rust shows
+  inferred types inline; other languages keep inlay hints off (`<leader>uh`),
+  and a diagnostic's message shows only on the cursor's line.
 - **Types are "marked" individually, VS Code style, and never italic.** Most themes
   collapse every kind of type onto one `Type` colour, so a struct, an enum, a trait,
   a type alias and a generic parameter all look identical — the highlighting tells
@@ -62,11 +69,15 @@ dashboard.
 
 ## Install
 
+Clone it **anywhere** — the installers locate the repo from their own path, and
+nothing in it hard-codes where it lives. This machine keeps it at
+`~/Repos/dotfiles`; the examples below use that.
+
 ### Windows
 
 ```powershell
-git clone <this-repo> $env:USERPROFILE\dotfiles
-cd $env:USERPROFILE\dotfiles
+git clone <this-repo> $env:USERPROFILE\Repos\dotfiles
+cd $env:USERPROFILE\Repos\dotfiles
 .\install.ps1 -InstallTools -Sync
 ```
 
@@ -77,8 +88,8 @@ Mode; junctions need neither.
 ### Linux / macOS
 
 ```bash
-git clone <this-repo> ~/dotfiles
-cd ~/dotfiles
+git clone <this-repo> ~/Repos/dotfiles
+cd ~/Repos/dotfiles
 ./install.sh --tools --sync
 ```
 
@@ -88,6 +99,12 @@ expect (see the `fd-find` note below).
 
 Both scripts back up an existing config with a timestamp before replacing it, and
 both are safe to re-run.
+
+**Moving the repo later:** move the directory, then re-run the installer from
+the new place (`./install.sh --force` / `.\install.ps1 -Force`). The nvim link
+is the only thing that points into the repo — Ghostty, Starship and fastfetch
+are *copies* — and the installer recognises the old, now-dangling link and
+re-points it.
 
 ### Ghostty and Starship (Linux only)
 
