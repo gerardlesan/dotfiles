@@ -4,7 +4,7 @@
 // here) and FETCH_CPU: the cpu row shows usage first, then the model, and
 // fastfetch's cpuusage module has no name field of its own.
 //
-// Layout: three spaced-out boxes, straight top and bottom with rounded corners,
+// Layout: three stacked boxes (a blank line between them was tried; too airy), straight top and bottom with rounded corners,
 // sides left open (braille dots were tried there and taken out); a rule under user@host fading acid -> dark; a
 // thin bar between each key and its value. Every value is padded to 35 columns
 // ({x<N}; fastfetch pads by BYTES, so the bar rows are padded by hand) so the
@@ -102,7 +102,6 @@
       "type": "custom",
       "format": "{#38;2;48;110;2}╰──────────────────────────────────────────────────╯"
     },
-    "break",
     {
       "type": "custom",
       "format": "{#38;2;48;110;2}╭─ {#38;2;196;239;58}session {#38;2;48;110;2}────────────────────────────────────────╮"
@@ -126,7 +125,6 @@
       "type": "custom",
       "format": "{#38;2;48;110;2}╰──────────────────────────────────────────────────╯"
     },
-    "break",
     {
       "type": "custom",
       "format": "{#38;2;48;110;2}╭─ {#38;2;196;239;58}hardware {#38;2;48;110;2}───────────────────────────────────────╮"
