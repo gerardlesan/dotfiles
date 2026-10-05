@@ -29,19 +29,22 @@ local M = {}
 M.colors = {
   -- ── Backgrounds, darkest to lightest ───────────────────────────────────────
   -- Tokyonight's stock background is #1a1b26, which has a distinct blue cast.
-  -- These are the same luminance with the blue pulled out and a whisper of red
-  -- pushed in, so the red accent sits on a warm ground instead of fighting it.
-  bg_dark = "#15131a", -- sidebars, floating windows, inactive statusline
-  bg = "#1a1820", -- the normal editing background
-  bg_alt = "#1f1c27", -- slightly raised surfaces (popup menu, tabline fill)
-  bg_hl = "#2b2333", -- CursorLine, current-item highlight
-  bg_sel = "#2f2739", -- popup-menu selection
-  bg_visual = "#3a2b42", -- Visual mode selection (warm, not blue)
+  -- These are luminance-matched (WCAG relative luminance, computed, not eyeballed)
+  -- to the previous warm-violet set, with the hue moved to a faint green — the
+  -- Adrian green the terminal, prompt and fastfetch share. Same contrast against
+  -- every foreground as before; only the tint changed. Was, in order: #15131a
+  -- #1a1820 #1f1c27 #2b2333 #2f2739 #3a2b42.
+  bg_dark = "#121511", -- sidebars, floating windows, inactive statusline
+  bg = "#161a15", -- the normal editing background
+  bg_alt = "#1a1f19", -- slightly raised surfaces (popup menu, tabline fill)
+  bg_hl = "#20281e", -- CursorLine, current-item highlight
+  bg_sel = "#242d22", -- popup-menu selection
+  bg_visual = "#253522", -- Visual mode selection (green-tinted, like the ground)
 
   -- ── Foregrounds ────────────────────────────────────────────────────────────
   fg = "#cbc6d9", -- normal text (warm-shifted from Tokyonight's #c0caf5)
   fg_dark = "#a8a2bb", -- statusline / less important text
-  fg_gutter = "#3b3548", -- line numbers, indent guides, fold column
+  fg_gutter = "#313b2e", -- line numbers, indent guides, fold column
   comment = "#6d6484", -- comments; brighter than stock so they stay legible
 
   -- ── The red accent family — the "gentle red" lean ──────────────────────────
@@ -79,8 +82,8 @@ M.colors = {
   -- Mirrors the Ghostty palette (`palette = 0..15` in ~/.config/ghostty/config)
   -- so a shell inside Neovim looks like a shell outside it.
   terminal = {
-    black = "#2f2739",
-    bright_black = "#4b4360",
+    black = "#242d22", -- = bg_sel
+    bright_black = "#3e4b3b",
     red = "#f7768e",
     bright_red = "#ff8fa3",
     green = "#9ece6a",

@@ -125,6 +125,33 @@ the exact line if it is absent. It does not edit the rc file itself: a distro th
 ships its own prompt framework (CachyOS sources `cachyos-config.fish`) has to be
 initialised *before* starship, and only you know what else is in there.
 
+### The greeting: fastfetch with an animated logo (Linux, Ghostty)
+
+`fastfetch/` is copied to `~/.config/fastfetch/` the same way. A new Ghostty
+window (or an SSH session) opens on fastfetch beside one of three animated ASCII
+scenes: **Adrian** (the green planet), **the Wheel** (seven spokes, one gold, one
+emerald), **the Petrova line** (Astrophage streaming between a far sun and
+Adrian's horizon). It picks at random and never repeats the last one.
+
+```
+fastfetch/fetch.py      the launcher fish_greeting calls; picks scene + display mode
+fastfetch/art.py        renders the scenes (numpy + Pillow): art.py preview wheel
+fastfetch/config.jsonc  the info pane
+```
+
+How it animates in Ghostty 1.3 (which cannot play kitty animations): the logo is
+kitty Unicode-placeholder text, so it scrolls and clears like text, and a small
+background process re-sends the next frame under the same image id while you are
+at the prompt. It pauses while a command runs and exits with the tab. Frames are
+rendered per terminal cell size into `~/.cache/fastfetch-art/` (about 40 MB per
+scene per size); a new size renders in the background, with a still text frame
+meanwhile. Over SSH it is always that still text frame.
+
+Like starship, it only runs if the shell calls it — `install.sh` prints the
+`fish_greeting` snippet if `~/.config/fish/config.fish` does not have it. The
+snippet only greets in Ghostty or over SSH, never in Neovim's `:terminal`, an IDE
+terminal, or a nested shell.
+
 **The filename matters**: Ghostty reads exactly `config`, with no extension. A
 file called `config.ghostty` is ignored without a warning, which leaves the
 terminal on its stock theme and font while Neovim renders its own palette — the

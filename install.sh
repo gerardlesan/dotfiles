@@ -446,6 +446,35 @@ if [ "$OS" = "Linux" ]; then
       echo "           $INIT_LINE"
     fi
   fi
+
+  step "fastfetch"
+  # The shell greeting: fastfetch beside an animated logo. fetch.py picks how to
+  # show it (see its docstring); art.py renders the frames into
+  # ~/.cache/fastfetch-art the first time it meets a new terminal cell size, in
+  # the background, showing a still text frame until they are ready. Copied like
+  # the two above, for the same reason.
+  for f in "$REPO_ROOT"/fastfetch/*; do
+    [ -f "$f" ] || continue
+    install_file "fastfetch/$(basename "$f")" "$CONFIG_HOME/fastfetch/$(basename "$f")" "fastfetch/$(basename "$f")"
+  done
+  chmod +x "$CONFIG_HOME/fastfetch/fetch.py" "$CONFIG_HOME/fastfetch/art.py"
+  have fastfetch || warn "fastfetch missing — Arch: sudo pacman -S fastfetch"
+  python3 -c 'import numpy, PIL' 2>/dev/null \
+    || warn "art.py needs numpy and Pillow — Arch: sudo pacman -S python-numpy python-pillow"
+  # Like starship, it only runs if the shell calls it, from a line that lives in
+  # the per-machine rc file. Only fish is wired up; the gate is in that snippet.
+  if grep -q "fastfetch/fetch.py" "$CONFIG_HOME/fish/config.fish" 2>/dev/null; then
+    ok "fish_greeting runs fetch.py"
+  else
+    warn "fish_greeting does not run fetch.py — add to $CONFIG_HOME/fish/config.fish:"
+    echo "           function fish_greeting"
+    echo "               set -q NVIM; and return"
+    echo "               test \"\$SHLVL\" -le 1; or return"
+    echo "               if set -q SSH_CONNECTION; or test \"\$TERM_PROGRAM\" = ghostty"
+    echo "                   ~/.config/fastfetch/fetch.py"
+    echo "               end"
+    echo "           end"
+  fi
 fi
 
 # ── 6. WezTerm config ─────────────────────────────────────────────────────────

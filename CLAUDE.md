@@ -95,6 +95,7 @@ dotfiles/
 ├── .gitignore                   ignores lua/config/local.lua; NOT lazy-lock.json
 ├── ghostty/config               terminal config; COPIED to ~/.config/ghostty/ (Linux)
 ├── starship/starship.toml       prompt config; COPIED to ~/.config/ (Linux)
+├── fastfetch/                   shell greeting + animated logo; COPIED to ~/.config/ (Linux)
 ├── docs/
 │   ├── ADDING-A-LANGUAGE.md     five-edit worked example (Go) + how to add nvim-dap
 │   └── KEYBINDINGS.md           convenience copy; live keymap table is the truth
@@ -225,6 +226,7 @@ no registration step. A third level would need a third `import` line.
 | an autocommand | `lua/config/autocmds.lua` |
 | a terminal setting | `ghostty/config`, then re-run `install.sh` to push it out |
 | the shell prompt | `starship/starship.toml`, same — it is copied, not linked |
+| the shell greeting | `fastfetch/` — `fetch.py` docstring first; art in `art.py` |
 | machine-specific anything | `lua/config/local.lua` (git-ignored) — never commit it |
 
 `lua/plugins/*.lua` is one file per *concern*; `lua/plugins/lang/*.lua` is one

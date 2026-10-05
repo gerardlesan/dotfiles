@@ -1,0 +1,186 @@
+// The info pane beside the animated logo, shared by all three scenes.
+//
+// Run through fetch.py, which supplies the logo (logo.type is set there, not
+// here) and FETCH_CPU: the cpu row shows usage first, then the model, and
+// fastfetch's cpuusage module has no name field of its own.
+//
+// Layout: three spaced-out boxes, straight top and bottom with rounded corners,
+// sides left open (braille dots were tried there and taken out); a rule under user@host fading acid -> dark; a
+// thin bar between each key and its value. Every value is padded to 35 columns
+// ({x<N}; fastfetch pads by BYTES, so the bar rows are padded by hand) so the
+// boxes stay square. A value longer than its width only runs into the open side.
+//
+// Usage colours: three tiers, the most fastfetch's percentages support — light
+// green under 60%, yellow to 90%, red above. Thresholds are per module ("percent").
+//
+// Colours are the Adrian greens as SGR triples: deep 48;110;2  leaf 87;159;2
+// lime 143;212;4  acid 196;239;58  values 201;214;196.
+// Icons (Nerd Font): cachyos=linux-cachyos, os=md-arch, host=md-monitor, kernel=md-penguin, uptime=md-clock_outline, shell=md-console, desktop=md-application, terminal=md-ghost, cpu=md-gauge, gpu=md-video_input_hdmi, memory=md-memory, disk=md-harddisk, ip=md-lan
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    "padding": {
+      "top": 1,
+      "left": 2,
+      "right": 3
+    }
+  },
+  "display": {
+    "separator": "",
+    "color": {
+      "keys": "38;2;87;159;2",
+      "output": "38;2;201;214;196",
+      "title": "38;2;196;239;58"
+    },
+    "key": {
+      "width": 0
+    },
+    "size": {
+      "ndigits": 1,
+      "binaryPrefix": "iec"
+    },
+    "bar": {
+      "char": {
+        "elapsed": "━",
+        "total": "━"
+      },
+      "border": null,
+      "width": 10,
+      "color": {
+        "total": "38;2;29;60;16"
+      }
+    },
+    "percent": {
+      "type": [
+        "num",
+        "num-color",
+        "bar"
+      ],
+      "width": 3,
+      "color": {
+        "green": "38;2;185;242;124",
+        "yellow": "38;2;227;210;58",
+        "red": "38;2;255;74;61"
+      }
+    }
+  },
+  "modules": [
+    {
+      "type": "title",
+      "format": "{#1;38;2;196;239;58}{user-name}{#38;2;87;159;2}@{#1;38;2;196;239;58}{host-name}"
+    },
+    {
+      "type": "custom",
+      "format": "{#38;2;196;239;58}━━━━{#38;2;143;212;4}━━━━{#38;2;143;212;4}━━━━{#38;2;87;159;2}━━━━{#38;2;87;159;2}━━━━{#38;2;87;159;2}━━━━{#38;2;48;110;2}━━━━{#38;2;48;110;2}━━━━{#38;2;48;110;2}━━━━{#38;2;29;60;16}━━━━{#38;2;29;60;16}━━━━{#38;2;29;60;16}━━━━{#38;2;29;60;16}━━━━"
+    },
+    "break",
+    {
+      "type": "custom",
+      "format": "{#38;2;48;110;2}╭─ {#38;2;143;212;4}\uf385 {#38;2;196;239;58}system {#38;2;48;110;2}───────────────────────────────────────╮"
+    },
+    {
+      "type": "os",
+      "key": "  {#38;2;143;212;4}\udb82\udcc7 {#38;2;87;159;2}os      {#38;2;48;110;2} │ ",
+      "format": "{pretty-name<35}"
+    },
+    {
+      "type": "host",
+      "key": "  {#38;2;143;212;4}\udb80\udf79 {#38;2;87;159;2}host    {#38;2;48;110;2} │ ",
+      "format": "{family<35}"
+    },
+    {
+      "type": "kernel",
+      "key": "  {#38;2;143;212;4}\udb83\udec0 {#38;2;87;159;2}kernel  {#38;2;48;110;2} │ ",
+      "format": "{release<35}"
+    },
+    {
+      "type": "uptime",
+      "key": "  {#38;2;143;212;4}\udb80\udd50 {#38;2;87;159;2}uptime  {#38;2;48;110;2} │ ",
+      "format": "{formatted<35}"
+    },
+    {
+      "type": "custom",
+      "format": "{#38;2;48;110;2}╰──────────────────────────────────────────────────╯"
+    },
+    "break",
+    {
+      "type": "custom",
+      "format": "{#38;2;48;110;2}╭─ {#38;2;196;239;58}session {#38;2;48;110;2}────────────────────────────────────────╮"
+    },
+    {
+      "type": "shell",
+      "key": "  {#38;2;143;212;4}\udb80\udd8d {#38;2;87;159;2}shell   {#38;2;48;110;2} │ ",
+      "format": "{pretty-name} {version<30}"
+    },
+    {
+      "type": "de",
+      "key": "  {#38;2;143;212;4}\udb82\udcc6 {#38;2;87;159;2}desktop {#38;2;48;110;2} │ ",
+      "format": "{pretty-name<10} {version<24}"
+    },
+    {
+      "type": "terminal",
+      "key": "  {#38;2;143;212;4}\udb80\udea0 {#38;2;87;159;2}terminal{#38;2;48;110;2} │ ",
+      "format": "{pretty-name<7} {version<27}"
+    },
+    {
+      "type": "custom",
+      "format": "{#38;2;48;110;2}╰──────────────────────────────────────────────────╯"
+    },
+    "break",
+    {
+      "type": "custom",
+      "format": "{#38;2;48;110;2}╭─ {#38;2;196;239;58}hardware {#38;2;48;110;2}───────────────────────────────────────╮"
+    },
+    {
+      "type": "cpuusage",
+      "key": "  {#38;2;143;212;4}\udb80\ude9a {#38;2;87;159;2}cpu     {#38;2;48;110;2} │ ",
+      "format": "{avg-bar} {avg} {$FETCH_CPU}",
+      "percent": {
+        "green": 60,
+        "yellow": 90
+      },
+      "waitTime": 60
+    },
+    {
+      "type": "gpu",
+      "key": "  {#38;2;143;212;4}\udb82\udc41 {#38;2;87;159;2}gpu     {#38;2;48;110;2} │ ",
+      "format": "{core-usage-bar} {core-usage-num} {name~15}",
+      "driverSpecific": true,
+      "percent": {
+        "green": 60,
+        "yellow": 90
+      }
+    },
+    {
+      "type": "memory",
+      "key": "  {#38;2;143;212;4}\udb80\udf5b {#38;2;87;159;2}memory  {#38;2;48;110;2} │ ",
+      "format": "{percentage-bar} {used>9} / {total<9}   ",
+      "percent": {
+        "green": 60,
+        "yellow": 90
+      }
+    },
+    {
+      "type": "disk",
+      "key": "  {#38;2;143;212;4}\udb80\udeca {#38;2;87;159;2}disk    {#38;2;48;110;2} │ ",
+      "format": "{size-percentage-bar} {size-used>9} / {size-total<9}   ",
+      "folders": "/",
+      "percent": {
+        "green": 60,
+        "yellow": 90
+      }
+    },
+    {
+      "type": "localip",
+      "key": "  {#38;2;143;212;4}\udb80\udf17 {#38;2;87;159;2}local ip{#38;2;48;110;2} │ ",
+      "format": "{ipv4<35}",
+      "showIpv4": true,
+      "showIpv6": false,
+      "showPrefixLen": false
+    },
+    {
+      "type": "custom",
+      "format": "{#38;2;48;110;2}╰──────────────────────────────────────────────────╯"
+    }
+  ]
+}

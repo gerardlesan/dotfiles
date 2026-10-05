@@ -33,3 +33,6 @@ desktop.ini
 # NOTE: lazy-lock.json is deliberately NOT ignored. It pins every plugin to an
 # exact commit, which is what makes "clone on Linux" produce the same editor
 # rather than whatever HEAD happens to be that day. Commit it.
+
+# python bytecode (fastfetch/*.py imported by a test harness)
+__pycache__/

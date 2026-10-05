@@ -35,7 +35,7 @@ return {
 
       -- Let the terminal's own background show through. Off: a solid background
       -- is more legible, and Ghostty's background is already this exact colour
-      -- (`background = #1a1820` in ~/.config/ghostty/config, mirrored from
+      -- (`background = #161a15` in ~/.config/ghostty/config, mirrored from
       -- palette.lua) so there is nothing to gain.
       transparent = false,
 
