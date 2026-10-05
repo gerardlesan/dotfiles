@@ -268,7 +268,10 @@ def scene_wheel(t, cw, ch):
     light = np.where(hit[..., None], col, 0)
     # a faint ring of light just outside the rim: the Pattern
     r = np.sqrt(X * X + Y * Y) / min(X.max(), 1.0)
-    aura = np.exp(-((r - 0.84) ** 2) / 0.004) * (0.10 + 0.06 * np.sin(TAU * (t * 7 + np.arctan2(Y, X) * 7 / TAU)))
+    # It turns with the wheel, a shade slower: 15 lobes moving 2/15 of a turn per
+    # loop against the wheel's 1/7 (0.933x). The ratio has to be k/n with n lobes
+    # so the halo lands back on its own pattern when the loop wraps.
+    aura = np.exp(-((r - 0.84) ** 2) / 0.004) * (0.10 + 0.06 * np.sin(15 * np.arctan2(Y, X) + TAU * 2 * t))
     light = light + (~hit)[..., None] * aura[..., None] * hexrgb("#4f8f1c")
     return light, ~hit & (np.abs(r - 0.84) > 0.12), None
 
