@@ -296,28 +296,29 @@ def scene_petrova(t, cw, ch):
     flick = 1 + 0.10 * np.sin(TAU * 2 * t + ang * 5) + 0.06 * np.sin(TAU * 3 * t - ang * 9)
     sun = np.exp(-(rs / 0.022) ** 2) * 1.4 + np.exp(-rs / (0.04 * flick)) * 0.45
     light = light + sun[..., None] * hexrgb("#f4ffe0")
-    # the line: u runs sun (0) -> Adrian's top (1) in DEPTH; perspective maps it
-    # to the screen, so equal steps in u crowd together near the sun
+    # the line: s runs sun (0) -> Adrian's top (1) on screen. Particles crowd a
+    # little toward the sun (s = v^1.5) but not with true foreshortening, which
+    # piled nearly all of them at the sun and left the far half invisible; the
+    # depth is carried by width and particle size instead — a hairline at the
+    # sun, flaring wide where it meets the air.
     top = cy + R
-    z = lambda u: 9.0 * (1 - u) + 1.0 * u
-    persp = lambda u: (1 / z(u) - 1 / 9.0) / (1 - 1 / 9.0)
     g = RNG(21)
     n = 1600
-    u0, k = g.uniform(0, 1, n), g.choice([1, 2], n)
+    v0, k = g.uniform(0, 1, n), g.choice([1, 2], n)
     back = g.uniform(0, 1, n) < 0.45                           # the return leg
-    u = np.where(back, (u0 - k * t) % 1, (u0 + k * t) % 1)
-    s = persp(u)
+    v = np.where(back, (v0 - k * t) % 1, (v0 + k * t) % 1)
+    s = v ** 1.5
     px = sx + 0.16 * np.sin(np.pi * s) * (1 - s) + 0.06 * np.sin(TAU * s)   # a gentle S
     py = sy + (top + 0.02 - sy) * s
-    w = 0.004 + 0.05 * s + 0.07 * s ** 8                       # ~1/depth, flaring where it meets the air
+    w = 0.001 + 0.03 * s + 0.17 * s ** 6                       # hairline at the sun, flaring wide at the air
     px = px + g.normal(0, 1, n) * w
     py = py + g.normal(0, 1, n) * w * 0.5
     # dim per particle (they stack), and gone well before the sun so the sun
     # itself stays the brightest point up there
-    br = g.uniform(0.25, 0.85, n) * s ** 0.6 * np.clip((s - 0.03) * 4, 0, 1) * np.clip((1 - s) * 25, 0, 1)
+    br = g.uniform(0.25, 0.85, n) * (0.3 + 0.7 * s) * np.clip((s - 0.03) * 4, 0, 1) * np.clip((1 - s) * 25, 0, 1)
     reds = np.where(back[:, None], ramp(g.uniform(0, 1, n), ["#3a0508", "#8a0f17", "#c4141f"]),
                     ramp(g.uniform(0, 1, n), ["#7a0c12", "#d81e22", "#ff4a33", "#ff9a6a"]))
-    sig = 0.005 + 0.01 * s
+    sig = 0.003 + 0.024 * s ** 3                               # particles grow as they near: perspective
     acc = np.zeros(X.shape + (3,))
     xs, ys = X[0], Y[:, 0]
     for qx, qy, b, c, sg in zip(px, py, br, reds, sig):
