@@ -36,7 +36,7 @@
       "width": 0
     },
     "size": {
-      "ndigits": 1,
+      "ndigits": 0,
       "binaryPrefix": "iec"
     },
     "bar": {
@@ -160,7 +160,7 @@
     {
       "type": "memory",
       "key": "  {#38;2;143;212;4}\udb80\udf5b {#38;2;87;159;2}memory  {#38;2;48;110;2} │ ",
-      "format": "{percentage-bar} {used>9} / {total<9}   ",
+      "format": "{percentage-bar} {percentage} {used>7} / {total<8} ",
       "percent": {
         "green": 60,
         "yellow": 90
@@ -169,7 +169,7 @@
     {
       "type": "disk",
       "key": "  {#38;2;143;212;4}\udb80\udeca {#38;2;87;159;2}disk    {#38;2;48;110;2} │ ",
-      "format": "{size-percentage-bar} {size-used>9} / {size-total<9}   ",
+      "format": "{size-percentage-bar} {size-percentage} {size-used>7} / {size-total<8} ",
       "folders": "/",
       "percent": {
         "green": 60,
