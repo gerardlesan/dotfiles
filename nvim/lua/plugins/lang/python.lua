@@ -25,7 +25,9 @@ return {
   -- component in lua/plugins/ui.lua), so you can always see which one is in use.
   {
     "linux-cultist/venv-selector.nvim",
-    branch = "regexp", -- the actively maintained branch; `main` is the old rewrite
+    -- No `branch`: `regexp` was merged back into `main` (2025-08-27), and the
+    -- regexp branch's last commit only raises an ERROR notification on every
+    -- Python buffer telling you to drop the pin.
     dependencies = {
       "neovim/nvim-lspconfig",
       "mfussenegger/nvim-dap-python", -- optional; skipped gracefully if absent
@@ -44,7 +46,9 @@ return {
           -- sticks across sessions.
           activate_venv_in_terminal = true,
           set_environment_variables = true, -- exports VIRTUAL_ENV for :terminal
-          notify_user_on_venv_activation = true,
+          -- Off: a Python file opens silently. The statusline's python_env
+          -- segment already shows which venv is active.
+          notify_user_on_venv_activation = false,
           -- Show the venv path in the picker, not just its name — essential when
           -- three projects all have a `.venv`.
           debug = false,

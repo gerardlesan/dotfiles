@@ -208,7 +208,9 @@ return {
           },
           -- Buffer words are the weakest source: useful as a fallback, but they
           -- should never outrank a real LSP symbol.
-          buffer = { score_offset = -3, opts = { max_items = 5 } },
+          -- `max_items` is a provider field, not a buffer-source option: inside
+          -- `opts` blink rejects it ("Unexpected field") on the first completion.
+          buffer = { score_offset = -3, max_items = 5 },
           path = {
             -- Complete paths relative to the current file, not the cwd, which is
             -- what you mean when typing an import or an include.
