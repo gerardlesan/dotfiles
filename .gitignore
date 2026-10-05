@@ -36,3 +36,9 @@ desktop.ini
 
 # python bytecode (fastfetch/*.py imported by a test harness)
 __pycache__/
+
+# tests/nvshot.py: rust-analyzer builds the fixture crate, and the screenshots
+# go to tests/shots/ — both regenerated on every run.
+tests/rust-sample/target/
+tests/rust-sample/Cargo.lock
+tests/shots/

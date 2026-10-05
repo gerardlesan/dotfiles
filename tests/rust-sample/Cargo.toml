@@ -1,0 +1,9 @@
+# Fixture for tests/nvshot.py: a small crate that exercises every Rust highlight
+# group (traits, lifetimes, generics, enums, macros, unsafe, an unused binding).
+# Not a workspace member of anything; never built by the tests themselves.
+[package]
+name = "rust-sample"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
