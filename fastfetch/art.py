@@ -342,8 +342,28 @@ def scene_petrova(t, cw, ch):
     # The sun is a placed `*`, like the stars: its disc is smaller than a cell,
     # and shape-matching it gave quote marks. Its glow still comes from `light`.
     half = ROWS * ch / 2
-    col, row = int((sx * half + COLS * cw / 2) // cw), int((half - sy * half) // ch)
-    return light, sky, (edges, density), [(row, col, "*", hexrgb("#f4ffe0"), 1.0)]
+    cell = lambda x, y: (int((half - y * half) // ch), int((x * half + COLS * cw / 2) // cw))
+    row, col = cell(sx, sy)
+    marks = [(row, col, "*", hexrgb("#f4ffe0"), 1.0, True)]
+    # The hairline end is fainter than a glyph, so the cells just below the sun
+    # often came out blank and the line seemed to start mid-air. Its path gets a
+    # dim stroke wherever nothing else landed — `|`, or `/` `\` where it leans —
+    # so the line always visibly points back at the sun.
+    seen = {(row, col)}
+    for q in np.linspace(0.0, 0.45, 60):
+        qx = sx + 0.16 * np.sin(np.pi * q) * (1 - q) + 0.06 * np.sin(TAU * q)
+        qy = sy + (top + 0.02 - sy) * q
+        rc = cell(qx, qy)
+        if rc in seen or not (0 <= rc[0] < ROWS and 0 <= rc[1] < COLS):
+            continue
+        seen.add(rc)
+        dq = 0.01                                              # screen slope, in cells per cell
+        dx = (0.16 * (np.pi * np.cos(np.pi * q) * (1 - q) - np.sin(np.pi * q)) + 0.06 * TAU * np.cos(TAU * q)) * dq * half / cw
+        dy = (top + 0.02 - sy) * dq * half / ch
+        slope = dx / abs(dy)
+        g = "|" if abs(slope) < 0.35 else ("/" if slope < 0 else "\\")
+        marks.append((rc[0], rc[1], g, hexrgb("#c4141f"), 0.18 + 0.5 * q, False))
+    return light, sky, (edges, density), marks
 
 
 # scene: (function, frames per loop, star seed, star count)
@@ -452,8 +472,9 @@ def cells(scene, t, gl):
     idx, col, level = gl.pick(field, *(guide or ()))
     for y, x, g, b in stars(t, seed, sky_cells(sky), n):
         idx[y, x], col[y, x], level[y, x] = GLYPHS.index(g), STAR, b * 0.55
-    for y, x, g, c, b in (marks[0] if marks else ()):         # glyphs a scene places itself
-        idx[y, x], col[y, x], level[y, x] = GLYPHS.index(g), c, b
+    for y, x, g, c, b, force in (marks[0] if marks else ()):  # glyphs a scene places itself
+        if force or GLYPHS[idx[y, x]] == " ":               # unforced ones only fill blanks
+            idx[y, x], col[y, x], level[y, x] = GLYPHS.index(g), c, b
     return field, idx, col, level
 
 
