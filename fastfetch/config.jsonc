@@ -89,6 +89,14 @@
       "format": "{family<35}"
     },
     {
+      "type": "localip",
+      "key": "  {#38;2;143;212;4}\udb80\udf17 {#38;2;87;159;2}local ip{#38;2;48;110;2} │ ",
+      "format": "{ipv4<35}",
+      "showIpv4": true,
+      "showIpv6": false,
+      "showPrefixLen": false
+    },
+    {
       "type": "kernel",
       "key": "  {#38;2;143;212;4}\udb83\udec0 {#38;2;87;159;2}kernel  {#38;2;48;110;2} │ ",
       "format": "{release<35}"
@@ -167,14 +175,6 @@
         "green": 60,
         "yellow": 90
       }
-    },
-    {
-      "type": "localip",
-      "key": "  {#38;2;143;212;4}\udb80\udf17 {#38;2;87;159;2}local ip{#38;2;48;110;2} │ ",
-      "format": "{ipv4<35}",
-      "showIpv4": true,
-      "showIpv6": false,
-      "showPrefixLen": false
     },
     {
       "type": "custom",
