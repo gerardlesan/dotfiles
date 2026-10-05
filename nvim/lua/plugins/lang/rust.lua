@@ -95,6 +95,13 @@ return {
               vim.keymap.set("n", keys, cmd, { buffer = bufnr, desc = "Rust: " .. desc })
             end
 
+            -- Type hints ON in Rust, unlike every other language (lsp.lua
+            -- leaves them off): Rust infers almost every binding's type, so the
+            -- hints are the only place you see it. Styled by LspInlayHint in
+            -- colorscheme.lua — a cool grey, never mistaken for code or comment.
+            -- <leader>uh still toggles them.
+            vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+
             -- Run or test whatever is under the cursor. rustaceanvim figures out
             -- the correct `cargo run --bin x` / `cargo test path::to::test`.
             map("<leader>rr", function()

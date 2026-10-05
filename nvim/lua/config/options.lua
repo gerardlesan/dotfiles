@@ -400,11 +400,13 @@ opt.list = true
 --   tab       two-cell glyph: an arrow and a filler, so tab *width* is visible
 --   trail     trailing whitespace — the thing that fails your linter
 --   nbsp      non-breaking space, invisible until it breaks your parser
---   extends   line continues past the right edge (when 'wrap' is off)
---   precedes  line continues past the left edge
 --   NOT set: `eol` and `space`, which mark every single line end and every space.
 --            Technically informative, visually unbearable.
-opt.listchars = { tab = "→ ", trail = "·", nbsp = "␣", extends = "❯", precedes = "❮" }
+--   NOT set: `extends` / `precedes` (line continues past the window edge). With
+--            'wrap' off, every long line put a ❯ in the last column, and a
+--            narrowed split grew a whole column of them — a bar down the middle
+--            of the screen. The horizontal scroll position already says it.
+opt.listchars = { tab = "→ ", trail = "·", nbsp = "␣" }
 
 -- [window] Characters used for UI structure rather than buffer content.
 --   eob        end-of-buffer filler. Space instead of "~", so short files don't
@@ -1669,13 +1671,16 @@ opt.messagesopt = "hit-enter,history:500"
 local palette = require("config.palette")
 
 vim.diagnostic.config({
-  -- Inline virtual text at end of line. Set to `false` if you find it noisy and
-  -- prefer the virtual_lines block below, or hovering with <leader>cd.
+  -- Inline virtual text at end of line — on the CURSOR'S LINE ONLY. Every
+  -- other problem is still marked by its undercurl and gutter sign. Shown on
+  -- every line, ruff's "Do not assign a `lambda` expression…" ran off the right
+  -- edge of half the screen; Zed likewise keeps the message out of the code
+  -- until you are on it. <leader>ud switches to the multi-line block below.
   virtual_text = {
-    spacing = 4,
+    current_line = true,
+    spacing = 2,
     source = "if_many", -- name the source only when two linters disagree
     prefix = "●",
-    -- Only show hints and above inline; keep the line readable.
     severity = { min = vim.diagnostic.severity.HINT },
   },
 

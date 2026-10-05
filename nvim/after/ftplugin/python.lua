@@ -13,7 +13,11 @@ vim.bo.softtabstop = 4
 -- 88 columns, matching black and the `lineLength` in after/ftplugin's sibling
 -- after/lsp/ruff.lua. The guide is at 89 so the marker sits just past the limit
 -- rather than on the last legal column.
-vim.wo.colorcolumn = "89"
+-- No colorcolumn guide: the formatter enforces the width on save, and a
+-- full-height column of tinted cells is the "bar lingering in the middle"
+-- of a split once the window is narrower or wider than the code. Re-enable
+-- per project in lua/config/local.lua if you want it back.
+-- vim.wo.colorcolumn = "89"
 
 -- Do NOT hard-wrap code at 88 — the formatter decides where to break lines, and
 -- 'textwidth' would insert newlines mid-expression as you type. Length is

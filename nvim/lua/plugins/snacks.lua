@@ -77,7 +77,7 @@ return {
           hl = "SnacksIndent",
         },
         -- The "scope" is the block the cursor is currently inside. Highlighting
-        -- just that one guide in red is what makes indent guides genuinely useful
+        -- just that one guide in deep green is what makes indent guides genuinely useful
         -- rather than fifty decorative vertical lines.
         scope = {
           enabled = true,
@@ -329,7 +329,7 @@ return {
         enabled = true,
         preset = {
           -- Box-drawing characters, not Nerd Font glyphs, so this renders in any
-          -- font. Colour comes from SnacksDashboardHeader (red) in colorscheme.lua.
+          -- font. Colour comes from SnacksDashboardHeader (lime) in colorscheme.lua.
           header = table.concat({
             "",
             "   ███╗   ██╗██╗   ██╗██╗███╗   ███╗",
@@ -968,7 +968,8 @@ return {
                   vim.diagnostic.config({
                     virtual_lines = false,
                     virtual_text = {
-                      spacing = 4,
+                      current_line = true, -- as options.lua §35
+                      spacing = 2,
                       source = "if_many",
                       prefix = "●",
                       severity = { min = vim.diagnostic.severity.HINT },

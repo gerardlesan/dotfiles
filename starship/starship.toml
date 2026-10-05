@@ -7,7 +7,7 @@
 # theme is sampled from — fastfetch/art.py carries the same stops). Dark canopy
 # under the prompt, lit lime above it, and one yellow-green step at the limb
 # reserved for the thing that must never be missed: a failed command. The
-# terminal background is a faint green-black (#161a15, nvim/lua/config/palette.lua),
+# terminal background is a near-black with a trace of green (#0e0f0d, nvim/lua/config/palette.lua),
 # so the prompt reads as foliage growing out of its own ground. Information is
 # carried by BRIGHTNESS (how high up the canopy a colour sits), never by switching
 # to a foreign hue.
@@ -31,7 +31,8 @@
 # lime success arrow, while the prompt stays all green. The previous palette
 # ("fire", orange with a red failure) is in git history if you want it back.
 #
-# Every ratio is computed WCAG relative luminance against #161a15, not eyeballed —
+# Every ratio is computed WCAG relative luminance against #161a15, not eyeballed
+# (the background has since gone darker, #0e0f0d: each ratio ~8% higher) —
 # an earlier attempt had fills at 1.15:1 that simply vanished into the background.
 # If you retune, re-check: the failure mode of a one-family scheme is that two
 # steps collapse into each other and the prompt silently loses a distinction.

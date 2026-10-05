@@ -2,24 +2,34 @@
 ---
 --- SINGLE SOURCE OF TRUTH FOR COLOR.
 ---
---- The theme is Tokyonight "night", warm-shifted and re-accented around a gentle
---- red. Two design rules keep it readable rather than just red:
+--- The theme is "Adrian": the greens of the Adrian render in this repo
+--- (adrian_upscayl_2x_ultramix-balanced-4x.png) — the same greens the fastfetch
+--- logo, the starship prompt and Ghostty use — on Tokyonight's engine. Three
+--- design rules keep it readable rather than just green:
 ---
----   1. Red owns the *chrome and control flow* — borders, cursor, mode indicator,
----      keywords, operators. That is what makes the editor feel red at a glance.
----   2. Red does NOT own *data* — strings stay green, numbers stay orange. A
----      config where everything is one hue is pretty in a screenshot and
----      miserable to read code in.
+---   1. Green owns STRUCTURE — keywords, the cursor line number, matched
+---      brackets, the active indent scope, search. That is what makes the
+---      editor feel green at a glance.
+---   2. Code is TOKENISED FOR CONTRAST, not themed. Every kind of word gets
+---      its own hue (M.syntax), chosen so the kinds that sit next to each other
+---      are the furthest apart — see the measurements there. Green is kept
+---      for keywords only, which is enough to make the editor feel green.
+---   3. Chrome is QUIET, like Zed: borders, separators and the statusline sit a
+---      step or two above the background and carry no accent. Colour is spent on
+---      code, not on the frame around it.
 ---
---- `error` is deliberately a different, more saturated red than `accent` so a
---- diagnostic never reads as a keyword.
+--- Every foreground was checked for WCAG contrast against `bg` (#0e0f0d),
+--- computed, not eyeballed: code tokens 7.7–15.5:1, comments 5.9:1, line numbers
+--- ~2.6:1 (decoration, deliberately below text).
+---
+--- `error` is the Petrova red the fastfetch art uses, far from every syntax hue,
+--- so a diagnostic never reads as code.
 ---
 --- Ghostty mirrors these hex values in ~/.config/ghostty/config (no extension —
 --- Ghostty ignores any other filename). Ghostty cannot `require` from Neovim's
 --- runtimepath, so that file repeats the numbers with a pointer back here. If you
 --- retune the palette, change both.
 ---
---- To dial the red up or down, edit `accent` / `accent_deep` and re-open Neovim.
 --- Everything downstream (statusline, borders, syntax, git signs) derives from
 --- this table.
 
@@ -28,61 +38,78 @@ local M = {}
 ---@class Palette
 M.colors = {
   -- ── Backgrounds, darkest to lightest ───────────────────────────────────────
-  -- Tokyonight's stock background is #1a1b26, which has a distinct blue cast.
-  -- These are luminance-matched (WCAG relative luminance, computed, not eyeballed)
-  -- to the previous warm-violet set, with the hue moved to a faint green — the
-  -- Adrian green the terminal, prompt and fastfetch share. Same contrast against
-  -- every foreground as before; only the tint changed. Was, in order: #15131a
-  -- #1a1820 #1f1c27 #2b2333 #2f2739 #3a2b42.
-  bg_dark = "#121511", -- sidebars, floating windows, inactive statusline
-  bg = "#161a15", -- the normal editing background
-  bg_alt = "#1a1f19", -- slightly raised surfaces (popup menu, tabline fill)
-  bg_hl = "#20281e", -- CursorLine, current-item highlight
-  bg_sel = "#242d22", -- popup-menu selection
-  bg_visual = "#253522", -- Visual mode selection (green-tinted, like the ground)
+  -- Luminance-matched (WCAG relative luminance, computed) to the warm-violet set
+  -- this config started from, with the hue moved to a faint green. Was, in
+  -- order: #15131a #1a1820 #1f1c27 #2b2333 #2f2739 #3a2b42.
+  -- 2026-10: taken darker twice (#161a15 -> #131612 -> #0e0f0d) and the green
+  -- tint halved (OKLab chroma 0.92 -> 0.44): with every token coloured, a green
+  -- ground made the lime keywords read green-on-green. Now a near-black with a
+  -- trace of green; the surfaces keep their steps above it.
+  bg_dark = "#0a0b09", -- statusline, sidebars, picker, tab bar
+  bg = "#0e0f0d", -- the normal editing background
+  bg_alt = "#151714", -- raised surfaces: floats, popup menu, sticky context
+  bg_hl = "#181b17", -- CursorLine: a whisper, not a stripe
+  bg_sel = "#20251e", -- popup-menu selection, other uses of the symbol
+  bg_visual = "#283322", -- Visual mode selection: the one clearly green fill
 
   -- ── Foregrounds ────────────────────────────────────────────────────────────
-  fg = "#cbc6d9", -- normal text (warm-shifted from Tokyonight's #c0caf5)
-  fg_dark = "#a8a2bb", -- statusline / less important text
-  fg_gutter = "#313b2e", -- line numbers, indent guides, fold column
-  comment = "#6d6484", -- comments; brighter than stock so they stay legible
+  -- Neutral green-greys, the fastfetch values colour (201;214;196) nudged up.
+  fg = "#e3e9dc", -- normal text and variables, 14.7:1
+  fg_dark = "#a5b29c", -- statusline text, punctuation, 7.9:1
+  fg_gutter = "#4a5945", -- line numbers, 2.6:1 — present, never competing
+  comment = "#7f9578", -- comments, 5.6:1; italic, so prose reads as prose
+  border = "#272d24", -- window separators, float borders: there, but quiet
+  docstring = "#9cb093", -- doc-strings: prose, between comment and code
+  -- Inlay hints (Rust's inferred types): a COOL grey, so a hint is never read
+  -- as code (all saturated) or as a comment (green-grey, italic). 5.5:1.
+  inlay = "#7e8ea6",
+  indent = "#1b1f19", -- plain indent guides: barely there
 
-  -- ── The red accent family — the "gentle red" lean ──────────────────────────
-  accent = "#f7768e", -- primary accent: keywords, mode, cursor, matchparen
-  accent_soft = "#ffa0ae", -- hover/selected text on an accent background
-  accent_dim = "#d4687d", -- de-emphasised accent (inactive tab, blame text)
-  accent_deep = "#c53b53", -- window borders, separators, underlines
+  -- ── The green accent family — Adrian's greens ──────────────────────────────
+  accent = "#8fd404", -- lime: keywords, mode, cursor line number, matches
+  accent_soft = "#c4ef3a", -- acid: the brightest green, for the current match
+  accent_dim = "#6fa83a", -- leaf: operators, inactive emphasis
+  accent_deep = "#3f6b1c", -- deep: active indent scope, scrollbar thumb
 
-  -- ── Remaining syntax hues ──────────────────────────────────────────────────
-  -- Kept from Tokyonight so that data-carrying tokens stay distinguishable.
-  orange = "#ff9e64", -- numbers, booleans, constants
-  yellow = "#e0af68", -- functions, warnings
-  green = "#9ece6a", -- strings
-  teal = "#5ec8b0", -- regex, escapes
-  cyan = "#7dcfff", -- types, parameters
-  blue = "#7aa2f7", -- links, identifiers (used sparingly now)
-  magenta = "#bb9af7", -- special/builtin
-  purple = "#9d7cd8", -- rare emphasis
+  -- ── Tokyonight's hue slots ─────────────────────────────────────────────────
+  -- For PLUGIN surfaces (devicons, statusline segments, markdown headings).
+  -- Code tokens come from M.syntax below; these just reuse its values so the
+  -- two never drift. Tokyonight's names describe its own roles, not the hue:
+  -- `green` is its strings slot, which is why it holds the string colour.
+  orange = "#ff9a3c",
+  yellow = "#ffd166",
+  green = "#efd28c",
+  teal = "#3fd8c2",
+  cyan = "#9ceee4",
+  blue = "#6fb0ff",
+  magenta = "#d98cf5",
+  purple = "#b8a8ff",
 
   -- ── Diagnostics ────────────────────────────────────────────────────────────
-  -- `error` is intentionally NOT `accent`. Same family, different saturation and
-  -- lightness, so red-as-error and red-as-keyword never get confused.
-  error = "#db4b4b",
-  warn = "#e0af68",
-  info = "#0db9d7",
-  hint = "#10b981",
-  ok = "#9ece6a",
+  error = "#ff5f52", -- Petrova red
+  warn = "#e3d23a", -- the fastfetch "60–90%" yellow
+  info = "#7cc7e0",
+  hint = "#9fc87a",
+  ok = "#8fd404",
 
   -- ── Git ────────────────────────────────────────────────────────────────────
-  git_add = "#5faf5f",
-  git_change = "#d7a65f",
-  git_delete = "#c75c6a",
+  git_add = "#6fae2a",
+  git_change = "#d9b44a",
+  git_delete = "#e05a4f",
+
+  -- ── Tints: a severity colour at ~12% over `bg`, for the inline message ────
+  tint_error = "#261613",
+  tint_warn = "#222113",
+  tint_info = "#121e25",
+  tint_hint = "#172114",
 
   -- ── Terminal ANSI 0-15, for :terminal buffers ──────────────────────────────
   -- Mirrors the Ghostty palette (`palette = 0..15` in ~/.config/ghostty/config)
-  -- so a shell inside Neovim looks like a shell outside it.
+  -- so a shell inside Neovim looks like a shell outside it. Only black/white
+  -- follow the Adrian tint; the hues stay recognisable ANSI hues, because
+  -- programs (git, ls, compilers) mean something specific by "red".
   terminal = {
-    black = "#242d22", -- = bg_sel
+    black = "#242d22",
     bright_black = "#3e4b3b",
     red = "#f7768e",
     bright_red = "#ff8fa3",
@@ -96,8 +123,8 @@ M.colors = {
     bright_magenta = "#cdaaff",
     cyan = "#7dcfff",
     bright_cyan = "#a4dcff",
-    white = "#cbc6d9",
-    bright_white = "#e8e4f0",
+    white = "#e3e9dc", -- = fg
+    bright_white = "#f4f7f0",
   },
 }
 
@@ -111,77 +138,89 @@ M.style = {
   --- italic. Two reasons: a slanted monospace face loses the vertical stems that
   --- keep `l`, `1` and `|` apart at terminal sizes, and an italic *type* reads as
   --- "somehow provisional" when the whole point is that it is a concrete, named
-  --- thing. Types are distinguished by HUE and WEIGHT here instead — see M.types.
+  --- thing. Types are distinguished by HUE and WEIGHT here instead — see M.syntax.
   ---
   --- Set to false to remove italics from the config entirely.
   italic_comments = true,
 }
 
 --- ═══════════════════════════════════════════════════════════════════════════
---- TYPE-KIND COLOURS  ("marked types", VS Code style)
+--- SYNTAX — one hue per kind of word, tuned for "tokenised" reading
 --- ═══════════════════════════════════════════════════════════════════════════
---- The problem these solve: a language server reports a dozen *kinds* of type,
---- and most themes collapse them all onto one "Type" colour. In Rust that means a
---- struct, an enum, a trait, a type alias and a generic parameter are all the same
---- shade of cyan — so the highlighting tells you "this is a type" and nothing
---- more, which is the least interesting half of the information.
+--- The goal: you can tell what every word IS without reading it. Two numbers
+--- were optimised, both computed (not eyeballed) against `bg` #0e0f0d:
 ---
---- Verified against what rust-analyzer actually emits for a representative file
---- (47 distinct `@lsp.*` groups; see lua/plugins/colorscheme.lua for the full
---- mapping). The scheme:
+---   CONTRAST  WCAG ratio of each token on the background — all ≥ 7.3:1, most
+---             ≥ 9 (the old set had functions at 7.7 and fields barely apart
+---             from plain text).
+---   DISTANCE  perceptual distance (OKLab ΔE×100) between kinds that sit NEXT
+---             TO EACH OTHER in real code. Measured pairs, worst first:
+---               field/number 12   string/number 13   string/variant 11 (rare)
+---               param/variable 12  namespace/type 13  keyword/string 14
+---               type/function 16  keyword/type 16  self/field 25
+---               variable/field 25  keyword/function 30  macro/string 26
+---             The old set had number=variant (ΔE 0) and field≈variable.
 ---
----   COOL hues  = concrete data types you can hold          struct, enum, alias
----   MAGENTA    = behaviour rather than data                trait / interface
----   WARM hues  = abstract or dangerous                    generics, unions
----   WEIGHT     = bold marks a *declaration* site           (the big VS Code-ism)
----   UNDERLINE  = indirection (an alias points elsewhere) or danger (unsafe)
+--- The hues go round the wheel so neighbours in code are far apart on it:
 ---
---- Because these are keyed by role rather than by language, any other language
---- server with rich semantic tokens (gopls, clangd, jdtls) picks them up for free.
-M.types = {
-  -- Concrete nominal types — cool, so they read collectively as "a type".
-  struct = "#7dcfff", -- the workhorse; by far the most common, so the plain cyan
-  enum = "#4ec9b0", -- teal-green: clearly a different hue from struct
-  alias = "#7dcfff", -- same cyan as struct, plus an underline for indirection
-
-  -- Behaviour, not data. Magenta separates "what it can do" from "what it is".
-  trait = "#bb9af7",
-
-  -- Abstract or unsafe — warm, so they stand out from the concrete cool types.
-  generic = "#ffc777", -- type parameters: a placeholder, not a real type yet
-  union = "#ff9e64", -- Rust unions are inherently unsafe to read
-
-  -- Values, not types. Shares the constant/number family.
-  constant = "#ff9e64",
-  enum_member = "#ff9e64",
-
-  -- Annotations and paths — deliberately QUIET.
-  lifetime = "#d4687d", -- `'a`: an annotation, in the red family, low-key
-  namespace = "#a8a2bb", -- `std::collections::` recedes so `HashMap` can pop
-  attribute = "#6d6484", -- `#[derive(...)]` is scaffolding, not logic
-
-  -- Code generation. Warm+bold puts macros in the "function" family while
-  -- marking them as doing something unusual.
-  macro = "#e0af68",
+---   lime     keyword            `fn` `let` `match` `self`      (the green)
+---   azure    function / method  `parse_line` `.next()`
+---   orchid   macro              `println!` `format!`
+---   teal     type               `Reading` `String` `f64`
+---   aqua     enum               `Source` `Option`
+---   lemon    enum variant       `Sensor` `Some` `None`
+---   lavender trait / interface  `Summary` `Display`
+---   gold     generic, lifetime  `T` `'a`
+---   orange   number / constant  `42.5` `true` `LIMIT`
+---   sand     string             `"store"`
+---   coral    field / property   `self.label`
+---   pink     parameter          `fn f(line: &str)` and its uses
+---   white    variable           plain locals
+---   grey     namespace          `std::fmt::` recedes so the type pops
+---
+--- WEIGHT and UNDERLINE carry the rest (see colorscheme.lua): bold marks a
+--- declaration and the keywords; underline marks a `mut` binding and a type
+--- alias; `unsafe` gets an undercurl.
+M.syntax = {
+  variable = "#e3e9dc", -- 14.7:1
+  keyword = "#a6e03a", -- 11.6:1
+  func = "#6fb0ff", -- 8.1:1
+  macro = "#d98cf5", -- 7.8:1
+  type = "#3fd8c2", -- 10.3:1
+  enum = "#9ceee4", -- 13.7:1
+  variant = "#fff45c", -- 15.3:1
+  trait = "#b8a8ff", -- 8.8:1
+  generic = "#ffd166", -- 12.7:1
+  lifetime = "#c9a86a", -- 8.1:1, quieter than a type: an annotation
+  number = "#ff9a3c", -- 8.6:1; also booleans and named constants
+  string = "#efd28c", -- 13.1:1
+  escape = "#c4ef3a", -- `\n`, `{}` inside strings: acid, against the sand
+  field = "#ff7a85", -- 7.3:1
+  param = "#f0bbda", -- 11.1:1
+  namespace = "#9fac9f", -- 7.7:1
+  operator = "#93bdb0", -- 8.8:1: visible, but not a word
+  punctuation = "#a9b5a2", -- 8.5:1: `,` `;` `.`
+  attribute = "#8ea39e", -- 6.9:1: `#[derive]`, `@decorator` — scaffolding
 }
 
 --- Nesting colours for rainbow-delimiters, OUTERMOST FIRST.
 ---
---- Red leads so the outermost bracket carries the theme accent, then the sequence
---- walks warm → cool, which makes depth read as a temperature gradient rather than
---- an arbitrary cycle. Seven levels, then it wraps.
+--- MUTED on purpose (chroma roughly halved, contrast ~6–7:1). Brackets touch
+--- every other token; at full saturation a lime `{` read as a keyword and an
+--- azure `(` as part of the function name. These say "depth" without
+--- competing with the words. Seven levels, then it wraps.
 ---
---- The `name` is the suffix of the highlight group (RainbowDelimiterRed, ...).
---- Keeping name and hue honest matters: a group called `...Green` holding a teal
---- is the kind of thing that wastes ten minutes a year from now.
+--- The `name` is the suffix of the highlight group (RainbowDelimiterSage, ...);
+--- lua/plugins/treesitter.lua builds rainbow-delimiters' `highlight` list from
+--- this table in order, so the names are free — keep them honest to the hue.
 M.rainbow = {
-  { name = "Red", color = "#f7768e" },
-  { name = "Orange", color = "#ff9e64" },
-  { name = "Yellow", color = "#e0af68" },
-  { name = "Green", color = "#9ece6a" },
-  { name = "Cyan", color = "#7dcfff" },
-  { name = "Blue", color = "#7aa2f7" },
-  { name = "Violet", color = "#bb9af7" },
+  { name = "Sage", color = "#a3bf86" },
+  { name = "Wheat", color = "#cdb88a" },
+  { name = "Clay", color = "#c99a86" },
+  { name = "Sea", color = "#86bdb2" },
+  { name = "Steel", color = "#8fa9c9" },
+  { name = "Heather", color = "#ad9fcb" },
+  { name = "Rose", color = "#c69ab4" },
 }
 
 --- Border style used by every floating window in this config.

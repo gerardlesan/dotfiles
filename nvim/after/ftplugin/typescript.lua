@@ -16,7 +16,11 @@ vim.bo.shiftwidth = 2
 vim.bo.tabstop = 2
 vim.bo.softtabstop = 2
 
-vim.wo.colorcolumn = "81"
+-- No colorcolumn guide: the formatter enforces the width on save, and a
+-- full-height column of tinted cells is the "bar lingering in the middle"
+-- of a split once the window is narrower or wider than the code. Re-enable
+-- per project in lua/config/local.lua if you want it back.
+-- vim.wo.colorcolumn = "81"
 vim.bo.textwidth = 0
 
 -- `gf` on an import specifier should find the module. Node resolution means the

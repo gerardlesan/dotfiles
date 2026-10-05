@@ -11,7 +11,11 @@ vim.bo.tabstop = 4
 vim.bo.softtabstop = 4
 
 -- rustfmt's max_width default is 100; guide one past it.
-vim.wo.colorcolumn = "101"
+-- No colorcolumn guide: the formatter enforces the width on save, and a
+-- full-height column of tinted cells is the "bar lingering in the middle"
+-- of a split once the window is narrower or wider than the code. Re-enable
+-- per project in lua/config/local.lua if you want it back.
+-- vim.wo.colorcolumn = "101"
 vim.bo.textwidth = 0
 
 -- Rust lifetimes (`'a`) mean a single quote is often unbalanced, which confuses

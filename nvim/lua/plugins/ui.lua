@@ -130,12 +130,44 @@ return {
         return string.format("%s%d/%d", icons.ui.search, count.current, count.total)
       end
 
+      --- Language-server progress ("Indexing 43%"), only while there is some.
+      --- Lives here rather than in a noice popup: a corner float that comes and
+      --- goes on every file open is exactly the startup "notification" this
+      --- config avoids. `vim.lsp.status()` drains the progress queue; lualine's
+      --- 100 ms refresh keeps it current.
+      local function lsp_progress()
+        local msg = vim.lsp.status()
+        if msg == "" then
+          return ""
+        end
+        return msg:gsub("%%", "%%%%"):sub(1, 40)
+      end
+
+      -- ── A flat theme, Zed-style: one ground, no blocks ───────────────────
+      -- Every section sits on bg_dark; only the mode label is coloured, and
+      -- its colour is the mode (lime normal, acid insert, gold visual, coral
+      -- replace, sky command). Text, not a filled pill, so the bar stays quiet.
+      local function mode(fg)
+        local sec = { a = { fg = fg, bg = c.bg_dark, gui = "bold" }, b = { fg = c.fg_dark, bg = c.bg_dark } }
+        sec.c = { fg = c.fg_dark, bg = c.bg_dark }
+        return sec
+      end
+      local theme = {
+        normal = mode(c.accent),
+        insert = mode(c.accent_soft),
+        visual = mode(P.syntax.generic),
+        replace = mode(c.orange),
+        command = mode(c.cyan),
+        terminal = mode(c.teal),
+        inactive = mode(c.comment),
+      }
+
       return {
         options = {
-          theme = "tokyonight", -- picks up the red-shifted palette automatically
-          -- Slanted separators. Set both to "" for a flat look.
-          component_separators = { left = "\u{e0b1}", right = "\u{e0b3}" },
-          section_separators = { left = "\u{e0b0}", right = "\u{e0b2}" },
+          theme = theme,
+          -- Flat: no powerline arrows, no pipes. Spacing alone groups segments.
+          component_separators = "",
+          section_separators = "",
           -- ONE statusline for the whole editor, matching laststatus=3.
           globalstatus = true,
           -- Never draw a statusline for these — they have their own headers.
@@ -148,7 +180,7 @@ return {
 
         sections = {
           -- ── Far left: mode. Red in normal mode, per the theme. ───────────
-          lualine_a = { { "mode", icon = "" } },
+          lualine_a = { { "mode", padding = { left = 2, right = 1 } } },
 
           -- ── Git: branch, then added/modified/removed line counts ─────────
           lualine_b = {
@@ -205,22 +237,23 @@ return {
 
           -- ── Right: context that changes per buffer ───────────────────────
           lualine_x = {
+            { lsp_progress, color = { fg = c.comment } },
             { search_count, color = { fg = c.accent_dim } },
-            { python_env, color = { fg = c.yellow } },
+            { python_env, color = { fg = c.green } },
             { file_format, color = { fg = c.warn, gui = "bold" } },
             { indent_info, color = { fg = c.comment } },
-            { lsp_clients, color = { fg = c.teal } },
+            { lsp_clients, color = { fg = c.comment } },
           },
 
           -- ── Language name, spelled out ───────────────────────────────────
           lualine_y = {
             { "filetype", icons_enabled = false, padding = { left = 1, right = 1 } },
-            { "progress", padding = { left = 1, right = 1 } },
           },
 
           -- ── Far right: cursor position ───────────────────────────────────
+          -- Position as Zed writes it: line:column, no percentage.
           lualine_z = {
-            { "location", padding = { left = 1, right = 1 } },
+            { "location", color = { fg = c.fg_dark, bg = c.bg_dark }, padding = { left = 1, right = 2 } },
           },
         },
 
@@ -285,7 +318,7 @@ return {
           },
         },
         separator_style = "thin",
-        indicator = { style = "underline" }, -- red underline on the active buffer
+        indicator = { style = "underline" }, -- lime underline on the active buffer
         show_buffer_close_icons = true,
         show_close_icon = false,
         always_show_bufferline = false, -- hide the bar entirely with only one file
@@ -294,6 +327,17 @@ return {
         -- Group and sort so related files sit together.
         sort_by = "insert_after_current",
       },
+      -- Bufferline derives its colours from the theme; these only take the
+      -- italics out. By default a selected tab with errors is red ITALIC — the
+      -- slant reads as "provisional", and the count beside it already says it.
+      highlights = (function()
+        local h = { buffer_selected = { italic = false, bold = true }, diagnostic_selected = { italic = false } }
+        for _, k in ipairs({ "error", "warning", "info", "hint" }) do
+          h[k .. "_selected"] = { italic = false, bold = true }
+          h[k .. "_diagnostic_selected"] = { italic = false, bold = true }
+        end
+        return h
+      end)(),
     },
     config = function(_, opts)
       require("bufferline").setup(opts)
@@ -377,7 +421,9 @@ return {
         -- type arguments. Two implementations would fight over the same float.
         signature = { enabled = false },
         -- "Indexing 43%" style progress from rust-analyzer et al.
-        progress = { enabled = true, view = "mini" },
+        -- Off: progress is a statusline segment (lsp_progress above) instead of
+        -- a "mini" float in the corner that appeared on every file open.
+        progress = { enabled = false },
         message = { enabled = true },
       },
 
@@ -421,7 +467,7 @@ return {
       },
 
       views = {
-        -- Give the command palette the same rounded red border as everything else.
+        -- Give the command palette the same rounded border as every other float.
         cmdline_popup = {
           border = { style = P.border },
           win_options = { winhighlight = { Normal = "NormalFloat", FloatBorder = "FloatBorder" } },
@@ -491,13 +537,24 @@ return {
     config = function(_, opts)
       require("render-markdown").setup(opts)
       -- Heading background bars, derived from the palette so they stay in family.
-      local heading_colors = { c.accent_deep, c.orange, c.yellow, c.green, c.teal, c.blue }
+      local heading_colors = { c.accent, c.yellow, c.orange, c.teal, c.cyan, c.blue }
       for i, colour in ipairs(heading_colors) do
         vim.api.nvim_set_hl(0, "RenderMarkdownH" .. i, { fg = colour, bold = true })
         -- A very dark tint of the heading colour as the background bar.
         vim.api.nvim_set_hl(0, "RenderMarkdownH" .. i .. "Bg", { bg = c.bg_alt, fg = colour, bold = true })
       end
-      vim.api.nvim_set_hl(0, "RenderMarkdownCode", { bg = c.bg_dark })
+      -- Code blocks on the raised surface: in a markdown file they lift off the
+      -- page, and inside an LSP hover (also bg_alt) they are seamless instead of
+      -- a patchwork of darker rectangles.
+      vim.api.nvim_set_hl(0, "RenderMarkdownCode", { bg = c.bg_alt })
+      vim.api.nvim_set_hl(0, "RenderMarkdownCodeInline", { fg = c.fg, bg = c.bg_sel })
+      vim.api.nvim_set_hl(0, "RenderMarkdownDash", { fg = c.border })
+      -- Table rules in the chrome colour: the default took the head row from
+      -- the heading hue and body rows from another, so one table had two
+      -- different frames.
+      vim.api.nvim_set_hl(0, "RenderMarkdownTableHead", { fg = c.fg_gutter })
+      vim.api.nvim_set_hl(0, "RenderMarkdownTableRow", { fg = c.fg_gutter })
+      vim.api.nvim_set_hl(0, "RenderMarkdownBullet", { fg = c.accent_dim })
       vim.api.nvim_set_hl(0, "RenderMarkdownChecked", { fg = c.green })
     end,
   },

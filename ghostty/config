@@ -14,8 +14,8 @@
 #   ghostty +show-config          the effective values, after all merging
 #
 # The colours below MIRROR nvim/lua/config/palette.lua (`M.colors`, and
-# `M.colors.terminal` for `palette = 0..15`). background = `bg`, cursor-color =
-# `green`, selection-background = `bg_visual`. The ground is a faint Adrian green
+# `M.colors.terminal` for `palette = 0..15`). background = `bg`, foreground = `fg`,
+# cursor-color = `accent` (lime), selection-background = `bg_visual`. The ground is a faint Adrian green
 # shared with starship.toml and fastfetch/; it is luminance-matched to the old
 # warm-violet one, so every contrast ratio is unchanged. Ghostty cannot read Neovim's Lua, so
 # the hex values are duplicated by hand — retune one, retune the other.
@@ -28,16 +28,16 @@
 #
 # Originally generated with https://ghostty.zerebos.com, then hand-tuned.
 
-background = #161a15
+background = #0e0f0d
 clipboard-paste-protection = false
 clipboard-read = allow
 confirm-close-surface = false
 copy-on-select = false
-cursor-color = #9ece6a
+cursor-color = #8fd404
 cursor-style = bar
 font-family = JetBrainsMono Nerd Font
 font-size = 12
-foreground = #cbc6d9
+foreground = #e3e9dc
 gtk-titlebar-hide-when-maximized = true
 mouse-hide-while-typing = true
 palette = 0=#242d22
@@ -47,7 +47,7 @@ palette = 3=#e0af68
 palette = 4=#7aa2f7
 palette = 5=#bb9af7
 palette = 6=#7dcfff
-palette = 7=#cbc6d9
+palette = 7=#e3e9dc
 palette = 8=#3e4b3b
 palette = 9=#ff8fa3
 palette = 10=#b9f27c
@@ -55,11 +55,11 @@ palette = 11=#ffc777
 palette = 12=#95b6ff
 palette = 13=#cdaaff
 palette = 14=#a4dcff
-palette = 15=#e8e4f0
+palette = 15=#f4f7f0
 resize-overlay = never
 scrollback-limit = 50000
-selection-background = #253522
-selection-foreground = #cbc6d9
+selection-background = #283322
+selection-foreground = #e3e9dc
 shell-integration = fish
 shell-integration-features = sudo,ssh-env,ssh-terminfo
 # NO `theme = …` line. The generator this file started from emitted

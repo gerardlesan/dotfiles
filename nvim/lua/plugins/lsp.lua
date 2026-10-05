@@ -326,11 +326,12 @@ return {
           end
 
           -- ── Inlay hints: inferred types and parameter names shown inline.
-          --    Enormously helpful in Rust and TypeScript, where types are usually
-          --    inferred and therefore invisible. Toggle with <leader>uh.
-          if client:supports_method("textDocument/inlayHint") then
-            vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-          end
+          --    NOT enabled on attach — <leader>uh shows them when you want the
+          --    inferred types. Screenshotted on fastfetch/art.py, basedpyright put
+          --    `: Any` / `: NDArray[float64]` / `h=` on nearly every line, so
+          --    the code read as half annotations; a clean buffer is the default,
+          --    as in Zed. The servers still compute them (after/lsp/*.lua), so
+          --    the toggle is instant.
 
           -- ── Document highlight: underline other uses of the symbol under the
           --    cursor. snacks.words drives the ]] / [[ navigation over these.
