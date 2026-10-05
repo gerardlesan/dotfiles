@@ -15,7 +15,7 @@
 //
 // Colours are the Adrian greens as SGR triples: deep 48;110;2  leaf 87;159;2
 // lime 143;212;4  acid 196;239;58  values 201;214;196.
-// Icons (Nerd Font): cachyos=linux-cachyos, os=md-arch, host=md-monitor, kernel=md-penguin, uptime=md-clock_outline, shell=md-console, desktop=md-application, terminal=md-ghost, cpu=md-gauge, gpu=md-video_input_hdmi, memory=md-memory, disk=md-harddisk, ip=md-lan
+// Icons (Nerd Font): os=linux-cachyos, host=md-monitor, kernel=md-penguin, uptime=md-clock_outline, shell=md-console, desktop=md-application, terminal=md-ghost, cpu=md-gauge, gpu=md-video_input_hdmi, memory=md-memory, disk=md-harddisk, ip=md-lan
 {
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
   "logo": {
@@ -76,11 +76,11 @@
     "break",
     {
       "type": "custom",
-      "format": "{#38;2;48;110;2}╭─ {#38;2;143;212;4}\uf385 {#38;2;196;239;58}system {#38;2;48;110;2}───────────────────────────────────────╮"
+      "format": "{#38;2;48;110;2}╭─ {#38;2;196;239;58}system {#38;2;48;110;2}─────────────────────────────────────────╮"
     },
     {
       "type": "os",
-      "key": "  {#38;2;143;212;4}\udb82\udcc7 {#38;2;87;159;2}os      {#38;2;48;110;2} │ ",
+      "key": "  {#38;2;143;212;4}\uf385 {#38;2;87;159;2}os      {#38;2;48;110;2} │ ",
       "format": "{pretty-name<35}"
     },
     {
