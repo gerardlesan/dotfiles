@@ -286,8 +286,8 @@ def scene_petrova(t, cw, ch):
     # Only the tip shows: a planet far wider than the frame, its centre well below
     # it, so the lit limb is one shallow arc across the bottom third. The edge
     # fade dissolves it where it runs out of frame.
-    R = 1.9
-    cy = -0.58 - R
+    R = 2.6
+    cy = -0.58 + 2 * (2 / ROWS) - R      # limb two rows above where it first sat
     light, inside, r, (edges, density) = adrian_disc(X, Y, t, 0.0, cy, R, [0.0, 0.62, -0.78], halo_k=16)   # lit from behind: night face, burning limb
     # the far sun
     sx, sy = 0.0, 0.66
