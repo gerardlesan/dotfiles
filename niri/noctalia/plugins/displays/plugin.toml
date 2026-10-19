@@ -1,0 +1,14 @@
+id = "roku/displays"
+name = "Displays"
+version = "1.0.0"
+plugin_api = 26
+author = "roku"
+license = "MIT"
+dependencies = []
+tags = ["display"]
+icon = "device-desktop"
+description = "Control center tile that opens nwg-displays (scale, resolution, layout)."
+
+[[shortcut]]
+id = "shortcut"
+entry = "shortcut.luau"

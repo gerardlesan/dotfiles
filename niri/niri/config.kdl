@@ -1,0 +1,732 @@
+// ╔══════════════════════════════════════════════════════════════════════════╗
+// ║  niri + noctalia: deliberately BLOATED demo config (niri 26.04)          ║
+// ║  Delete whatever you don't like. Every block is independent.             ║
+// ║  "/-" in front of a node comments out the whole node.                    ║
+// ║  Check after editing:  niri validate      (niri also hot-reloads it)     ║
+// ║  Show all binds in-session:  Mod+Shift+/                                 ║
+// ║  Wiki: https://niri-wm.github.io/niri/Configuration:-Introduction        ║
+// ╚══════════════════════════════════════════════════════════════════════════╝
+
+// ── Design foundations (shared with noctalia's config.toml) ─────────────────
+// Change a token here AND in noctalia's config so both stay in sync.
+//   spacing   4px grid: gap 12 (between windows, bar/dock to screen edge, popups)
+//   radius    sm 8 (tabs, pills) · md 12 (windows, bar, switcher) · lg 16 (dock, dialogs)
+//   elevation one shadow: softness 30, spread 5, y +6, black at 44% (#00000070)
+//             overview workspaces sit one level higher (softness 40, y +10)
+//   color     ONE source: noctalia generates noctalia-colors.kdl from the wallpaper
+//             (primary = focus, outline_variant = resting, error = urgent / sharing).
+//             The hex colors below are only neutral fallbacks until it exists.
+//   motion    move/resize: critically damped spring (no bounce), stiffness 800
+//             enter 200ms ease-out-expo · exit 150ms ease-out-quad (exits are faster)
+//             Need less motion? Uncomment `slowdown`/`off` in animations, and set
+//             [shell.animation] enabled = false in noctalia.
+//   contrast  text is never made translucent below 95%; focus ring 3px, primary
+//             color (Material 3 keeps primary ≥ 3:1 against surfaces).
+//   type      Noto Sans everywhere (same as your GTK/Plasma apps)
+
+// ── Session environment ─────────────────────────────────────────────────────
+// Only applies inside niri. This is the place for per-session variables, NOT
+// ~/.config/environment.d (that one leaks into Plasma too).
+environment {
+    // Qt apps use Plasma's look (reads kdeglobals, never writes it).
+    // Want niri fully independent from KDE theming? Use "qt6ct" instead
+    // (pacman -S qt6ct, then configure with the qt6ct app).
+    QT_QPA_PLATFORMTHEME "kde"
+    // Makes Dolphin's "Open with" menu work outside Plasma.
+    XDG_MENU_PREFIX "plasma-"
+    // Electron/Chromium apps run native Wayland.
+    ELECTRON_OZONE_PLATFORM_HINT "auto"
+    // Terminal used by noctalia (and others) for "run in terminal" apps.
+    TERMINAL "ghostty"
+    // The login chain that starts niri leaves SHLVL=2, so every Ghostty shell
+    // came up at SHLVL=3 and fish_greeting's "not a nested shell" guard
+    // (SHLVL <= 1) skipped the animated fastfetch. Unset it: each terminal's
+    // shell starts counting from 1 again, as it does under Plasma.
+    SHLVL null
+}
+
+// ── Input ───────────────────────────────────────────────────────────────────
+input {
+    // Let the XF86PowerOff bind open the session menu instead of niri suspending.
+    disable-power-key-handling
+
+    keyboard {
+        xkb {
+            // Empty = take the layout from `localectl` (yours is "es").
+            // layout "es,us"
+            // options "grp:alt_shift_toggle,compose:ralt,ctrl:nocaps"
+        }
+        repeat-delay 300
+        repeat-rate 40
+        numlock
+    }
+
+    touchpad {
+        tap
+        dwt                       // disable while typing
+        natural-scroll
+        // accel-speed 0.2
+        scroll-method "two-finger"
+        // disabled-on-external-mouse
+    }
+
+    mouse {
+        accel-profile "flat"
+    }
+
+    // Moving the mouse focuses windows/outputs (only ones fully on screen).
+    focus-follows-mouse max-scroll-amount="0%"
+    // Pointer jumps to the newly focused window when using the keyboard.
+    warp-mouse-to-focus
+    // Pressing Mod+<number> for the workspace you are on jumps back to the previous one.
+    // workspace-auto-back-and-forth
+}
+
+// ── Outputs ─────────────────────────────────────────────────────────────────
+// Names: run `niri msg outputs` inside niri. You have eDP-1 (laptop) and DP-1.
+/-output "eDP-1" {
+    // mode "2560x1600@165"
+    scale 1.25
+    position x=0 y=0
+    // variable-refresh-rate on-demand=true
+}
+/-output "DP-1" {
+    // mode "2560x1440@144"
+    scale 1
+    position x=2048 y=0
+}
+
+// ── Layout ──────────────────────────────────────────────────────────────────
+layout {
+    gaps 12
+    // "never": the view scrolls only as far as needed, so the first column
+    // always sits flush against the left edge. "on-overflow" centred any
+    // column that didn't fit beside its neighbour (every 3/4-wide one),
+    // leaving empty space left of the first column after scrolling back.
+    center-focused-column "never"
+    // Off for the same reason: a lone window would sit in the middle with
+    // empty space on its left.
+    // always-center-single-column
+    // An empty workspace also exists ABOVE the first one.
+    // empty-workspace-above-first
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+        proportion 0.75
+        proportion 1.0
+    }
+    preset-window-heights {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+    default-column-width { proportion 0.75; }
+
+    // Colors: fallbacks only, noctalia-colors.kdl (included at the end) wins.
+    // Off: no outline around windows; the shadow alone marks the window edges.
+    focus-ring {
+        off
+        width 3
+        active-color "#8ab4f8"
+        inactive-color "#44474e"
+        urgent-color "#f2b8b5"
+        // Gradient instead (a gradient beats the solid color from the theme file):
+        // active-gradient from="#89b4fa" to="#cba6f7" angle=45
+    }
+
+    // Always-visible outline. If you turn it on, turn focus-ring off.
+    border {
+        off
+        width 2
+        active-color "#8ab4f8"
+        inactive-color "#44474e"
+        urgent-color "#f2b8b5"
+    }
+
+    shadow {
+        on
+        softness 30
+        spread 5
+        offset x=0 y=6
+        draw-behind-window true
+        color "#00000070"
+    }
+
+    // Shown when a column is in tabbed mode (Mod+W).
+    tab-indicator {
+        hide-when-single-tab
+        place-within-column
+        gap 5
+        width 4
+        position "left"
+        corner-radius 8
+    }
+
+    // Preview of where a dragged window will land.
+    insert-hint {
+        color "#cba6f780"
+    }
+
+    // Outer gaps. Left/right struts keep a peek of the neighbour columns.
+    struts {
+        // left 32
+        // right 32
+    }
+}
+
+// ── Named workspaces (always exist, Mod+1..4 land on them) ──────────────────
+// Each name is a Nerd Font glyph so Noctalia's bar (label_source = "named")
+// draws it as an icon. Written as \u{} escapes: pasted Private Use Area
+// characters get eaten by editors and git. Declaration order = order at the
+// top of the monitor. Not pinned to an output: they start on the first
+// monitor, follow you if it's unplugged, and can be moved with
+// Mod+Shift+Alt+Left/Right. Plain workspaces below them are scratch space
+// (Mod+U/I, Mod+Shift+scroll, overview); Mod+Tab bounces to the previous one.
+workspace "\u{f11b}" // games: gamepad
+workspace "\u{f086}" // chat: speech bubbles
+// music: note (not f001: DejaVu Sans owns that codepoint and wins font fallback,
+// drawing nothing). Wide gaps and no focus ring: the old "zen" workspace look.
+workspace "\u{f075a}" {
+    layout {
+        gaps 48
+        focus-ring { off; }
+    }
+}
+workspace "\u{f0ac}" // web: globe
+
+// ── Startup ─────────────────────────────────────────────────────────────────
+// niri-session also runs XDG autostart entries (~/.config/autostart and
+// /etc/xdg/autostart) that aren't marked OnlyShowIn=KDE.
+spawn-at-startup "noctalia"
+// External monitor is main (named workspaces live there, focus starts there)
+// and the first window on a workspace opens full width. See the script.
+// Same name list as the Mod+1..4 binds, in declaration order.
+spawn-sh-at-startup "~/.config/niri/desktop-helper.py '\u{f11b}' '\u{f086}' '\u{f075a}' '\u{f0ac}'"
+// The one Zen window that lives on the web workspace (rule: "Web").
+spawn-at-startup "zen-browser"
+// spawn-at-startup "ghostty"
+
+hotkey-overlay {
+    skip-at-startup
+    // hide-not-bound
+}
+
+// Ask apps to drop their own title bars; niri draws the rings/shadows instead.
+prefer-no-csd
+
+screenshot-path "~/Pictures/Screenshots/niri-%Y-%m-%d_%H-%M-%S.png"
+
+cursor {
+    xcursor-theme "capitaine-cursors-light"
+    xcursor-size 24
+    hide-when-typing
+    // hide-after-inactive-ms 5000
+}
+
+// ── Overview (Alt+Tab, 4-finger swipe up) ───────────────────────────────────
+overview {
+    zoom 0.5
+    workspace-shadow {
+        softness 40
+        spread 10
+        offset x=0 y=10
+        color "#00000050"
+    }
+}
+
+gestures {
+    // No hot corners: pushing the pointer into a corner does nothing.
+    hot-corners {
+        off
+    }
+    // Dragging a window to a screen edge scrolls the view / switches workspace.
+    dnd-edge-view-scroll {
+        trigger-width 40
+        delay-ms 100
+        max-speed 1500
+    }
+    dnd-edge-workspace-switch {
+        trigger-height 50
+        delay-ms 100
+        max-speed 1500
+    }
+}
+
+// ── Global blur settings (niri 26.04+) ──────────────────────────────────────
+blur {
+    passes 2
+    offset 3.0
+    noise 0.03
+    saturation 1.0
+}
+
+// ── niri's own Alt-Tab-like switcher (unbound; see binds below) ─────────────
+// (Alt+Tab is the overview in binds below.)
+recent-windows {
+    open-delay-ms 150
+    highlight {
+        active-color "#8ab4f8"
+        urgent-color "#f2b8b5"
+        padding 24
+        corner-radius 12
+    }
+    previews {
+        max-height 480
+        max-scale 0.5
+    }
+    binds {
+        // No binds: Mod+Tab is previous workspace and Mod+º resets width;
+        // Alt+Tab is the overview.
+    }
+}
+
+// ── Animations ──────────────────────────────────────────────────────────────
+animations {
+    // Reduced motion: "slowdown 0.5" = everything twice as fast, "off" = none.
+    // off
+    // slowdown 0.5
+
+    // Spatial movement: one spring token, critically damped (no bounce,
+    // overshoot reads as wobble when you move windows all day).
+    workspace-switch {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+    horizontal-view-movement {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+    window-movement {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+    window-resize {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+    overview-open-close {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+
+    // Enter slower than exit: arrivals are noticed, departures get out of the way.
+    window-open {
+        duration-ms 200
+        curve "ease-out-expo"
+    }
+    window-close {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+}
+
+// ── Window rules ────────────────────────────────────────────────────────────
+// Find app-ids with: niri msg windows
+
+// Rounded corners for everything.
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+    // Ignore apps that ask to open maximized; niri would honour that as
+    // maximize-to-edges. They open at the default column width instead.
+    // (Nothing binds maximize-to-edges any more; Mod+M is Feishin.)
+    open-maximized-to-edges false
+}
+
+// Unfocused windows slightly transparent. Off by default: it lowers text
+// contrast in the windows you are reading from. Remove "/-" to try it.
+window-rule {
+    match is-active=false
+    opacity 0.95
+    background-effect {
+      blur true
+    }
+}
+
+// Blurred, translucent terminal (blur needs the window to be translucent).
+// 0.95 keeps text contrast; go lower only with a dark, calm wallpaper.
+window-rule {
+    match app-id=r#"^com\.mitchellh\.ghostty$"#
+    opacity 0.95
+    // Narrowest width that gives 94 columns on the external 1080p display at scale 1
+    // (stty size, stepping set-window-width a pixel at a time), which is what
+    // fastfetch/fetch.py needs to draw the logo (36 + PANE_COLS 58). 943 gave 93 and
+    // silently dropped it; the old 898 was measured on the laptop at scale 1.2 and
+    // gives only 89 here. Change the font, padding or display scale → re-measure.
+    // desktop-helper.py skips Ghostty, so it keeps this even when first on a workspace.
+    default-column-width { fixed 944; }
+    background-effect {
+        blur true
+    }
+}
+
+// Noctalia's settings window floats (from noctalia's docs).
+window-rule {
+    match app-id=r#"^dev\.noctalia\.Noctalia$"#
+    open-floating true
+    default-column-width { fixed 1080; }
+    default-window-height { fixed 920; }
+    geometry-corner-radius 16
+}
+
+// Small utility windows float.
+window-rule {
+    match app-id=r#"^org\.pulseaudio\.pavucontrol$"#
+    match app-id=r#"^org\.kde\.kcalc$"#
+    match app-id=r#"^nm-connection-editor$"#
+    match title=r#"^Picture.in.Picture$"#
+    match title=r#"^(Open|Save) File"#
+    open-floating true
+}
+
+// Popups and dialogs float. niri already floats dialogs that have a parent
+// window or a fixed size; these are the parentless ones it would tile:
+// auth prompts, portals, wallets, pinentry, zenity/kdialog, KDE job/info boxes,
+// nwg-displays (opened from the control center's Displays tile), and every
+// AB Download Manager window (main window and its add/progress dialogs
+// all share one app-id).
+window-rule {
+    match app-id=r#"^org\.kde\.(polkit-kde-authentication-agent-1|kdialog|kwalletd[56]|ksecretd|kdeconnect\.handler|kiod[56]|kded[56]|kmail\.dialog|plasma\.emojier)$"#
+    match app-id=r#"^(polkit-gnome-authentication-agent-1|polkit-mate-authentication-agent-1|hyprpolkitagent|lxqt-policykit-agent|mate-polkit)$"#
+    match app-id=r#"^(xdg-desktop-portal(-gtk|-kde|-gnome|-gnome-shell)?|org\.freedesktop\.impl\.portal\..*)$"#
+    match app-id=r#"^(pinentry(-qt|-gtk|-gnome3|-gtk-2)?|gcr-prompter|org\.gnome\.seahorse\.Application|ssh-askpass|kdialog|zenity|yad)$"#
+    match app-id=r#"^(blueman-manager|nwg-displays|com-abdownloadmanager-desktop-AppKt|nm-openconnect-auth-dialog|org\.kde\.kcolorchooser|com\.github\.hluk\.copyq)$"#
+    match title=r#"^(Open|Save|Choose|Select)( a)? (File|Files|Folder|Directory|Image)"#
+    match title=r#"^(Authentication Required|Authenticate|Unlock (Keyring|Login Keyring)|KDE Wallet)"#
+    match title=r#"^(Confirm|Confirmation|Warning|Error|Question|Information)$"#
+    match title=r#"^(File Operation Progress|Copying|Moving|Deleting)\b"#
+    open-floating true
+}
+
+// VirtualBox: its dialogs (Settings, Preferences, New VM wizard, media manager)
+// arrive parentless under the Manager/Machine app-ids, so niri tiles them.
+// Float everything VirtualBox opens except the Manager window itself
+// ("Oracle VirtualBox Manager") and running VMs ("<vm> [Running] - Oracle
+// VirtualBox"); "(VM )?" covers the pre-7.0 "Oracle VM VirtualBox" titles.
+window-rule {
+    match app-id=r#"^VirtualBox( Manager| Machine)?$"#
+    exclude title=r#"Oracle (VM )?VirtualBox( Manager)?$"#
+    open-floating true
+}
+
+// Web: only the Zen window started at login (spawn-at-startup above) lands
+// on the web workspace; at-startup=true matches during the first 60 s of
+// the session only. Every later Zen window (Mod+Z) opens where you are.
+window-rule {
+    match app-id=r#"^zen$"# at-startup=true
+    open-on-workspace "\u{f0ac}"
+}
+
+// Games: launchers plus the games they start. Proton/Wine games show up as
+// steam_app_<id> or as their .exe name; gamescope and umu wrap others.
+// Native games with an arbitrary app-id aren't caught: add them here.
+window-rule {
+    match app-id=r#"^(steam|net\.lutris\.Lutris|lutris|heroic|com\.heroicgameslauncher\.hgl)$"#
+    match app-id=r#"^(steam_app_.*|steam_proton|gamescope|umu-.*)$"#
+    match app-id=r#"\.exe$"#
+    open-on-workspace "\u{f11b}"
+}
+
+// Chat apps.
+window-rule {
+    match app-id=r#"^(discord|vesktop|elecwhat|com\.rtosta\.zapzap|org\.telegram\.desktop|signal|Signal)$"#
+    open-on-workspace "\u{f086}"
+}
+
+// Music.
+window-rule {
+    match app-id=r#"^(feishin|org\.jeffvli\.feishin|spotify|Spotify|com\.spotify\.Client)$"#
+    open-on-workspace "\u{f075a}"
+}
+
+// Hide password managers from screen sharing / screenshots.
+window-rule {
+    match app-id=r#"^org\.keepassxc\.KeePassXC$"#
+    match app-id=r#"^(Proton Pass|1Password)$"#
+    block-out-from "screen-capture"
+}
+
+// Red border on the window that's currently being screen-shared.
+window-rule {
+    match is-window-cast-target=true
+    focus-ring {
+        active-color "#f38ba8"
+        inactive-color "#7d0d2d"
+    }
+}
+
+// Steam games: start fullscreen-ish, no rounding.
+/-window-rule {
+    match app-id=r#"^steam_app_"#
+    open-fullscreen true
+    geometry-corner-radius 0
+}
+
+// Every Steam window except the main client floats: friends list, chats,
+// game properties, settings, Special Offers, install/launch dialogs. They're
+// all app-id "steam"; only the main window is titled exactly "Steam".
+window-rule {
+    match app-id=r#"^steam$"#
+    exclude title=r#"^Steam$"#
+    open-floating true
+}
+
+// Steam friend/achievement toasts are their own windows, so niri centred
+// them like any floating window and gave them the shadow. Put them where
+// noctalia's notifications go (top right, 12 = the shared gap), flat, and
+// never stealing focus. Title pattern from niri's wiki; not yet seen live here.
+window-rule {
+    match app-id=r#"^steam$"# title=r#"^notificationtoasts_\d+_desktop$"#
+    open-floating true
+    open-focused false
+    default-floating-position x=12 y=12 relative-to="top-right"
+    shadow { off; }
+}
+
+// ── Layer rules (noctalia surfaces) ─────────────────────────────────────────
+// Wallpaper lives inside the overview backdrop (blurred in the overview).
+// Pairs with [backdrop] enabled = true in noctalia's config.
+layer-rule {
+    match namespace="^noctalia-backdrop"
+    place-within-backdrop true
+}
+
+// Real (non-xray) blur behind noctalia's bar, panels, OSD, notifications, dock.
+layer-rule {
+    match namespace=r#"^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd)$"#
+    background-effect {
+        xray false
+    }
+}
+layer-rule {
+    match namespace="noctalia-window-switcher"
+    background-effect {
+        blur true
+        xray false
+    }
+}
+
+// Keep notifications out of screencasts.
+layer-rule {
+    match namespace="^noctalia-notification"
+    block-out-from "screencast"
+}
+
+// ── Laptop lid ──────────────────────────────────────────────────────────────
+// Your logind ignores the lid (99-no-sleep.conf), so this only locks.
+switch-events {
+    lid-close { spawn "noctalia" "msg" "session" "lock"; }
+}
+
+// Lets noctalia's launcher focus the apps it opens.
+debug {
+    honor-xdg-activation-with-invalid-serial
+}
+
+// ── Key bindings ────────────────────────────────────────────────────────────
+// Mod = Super (Alt when niri runs nested in a window).
+// Spanish layout: niri matches the UNshifted key of YOUR layout, so US names like
+// Slash, Equal, BracketLeft, grave never fire. Keys used here exist on "es":
+//   apostrophe = the '/? key right of 0   plus = the +* key   less = the <> key
+//   masculine  = the º key left of 1     minus / comma / period as printed
+binds {
+    Mod+Shift+apostrophe hotkey-overlay-title="Show this list (Mod+?)" { show-hotkey-overlay; }
+    Mod+F1 hotkey-overlay-title=null { show-hotkey-overlay; }
+
+    // ── Apps ──
+    // Apps with an open-on-workspace rule (music, chat, games) summon that
+    // workspace first: niri maps a window onto a non-active workspace without
+    // following it, so a bare spawn looked like nothing happened until a second
+    // press made the running instance request activation.
+    Mod+Q      hotkey-overlay-title="Terminal: ghostty"   { spawn "ghostty"; }
+    Mod+Return hotkey-overlay-title=null                  { spawn "ghostty"; }
+    Mod+E      hotkey-overlay-title="Files: Dolphin"      { spawn "dolphin"; }
+    Mod+P      hotkey-overlay-title="IDE: Zed"            { spawn "zeditor"; }
+    Mod+Z      hotkey-overlay-title="Browser: Zen"        { spawn "zen-browser"; }
+    Mod+M      hotkey-overlay-title="Music: Feishin"      { spawn-sh "~/.config/niri/summon-workspace.sh '\u{f075a}' '\u{f11b}' '\u{f086}' '\u{f075a}' '\u{f0ac}'; flatpak run org.jeffvli.feishin"; }
+    Mod+G      hotkey-overlay-title="Games: Steam"        { spawn-sh "~/.config/niri/summon-workspace.sh '\u{f11b}' '\u{f11b}' '\u{f086}' '\u{f075a}' '\u{f0ac}'; steam"; }
+    Mod+B      hotkey-overlay-title="Monitor: btop"       { spawn "ghostty" "-e" "btop"; }
+    Mod+D      hotkey-overlay-title="Chat: Discord"       { spawn-sh "~/.config/niri/summon-workspace.sh '\u{f086}' '\u{f11b}' '\u{f086}' '\u{f075a}' '\u{f0ac}'; discord"; }
+    Mod+W      hotkey-overlay-title="Chat: WhatsApp"      { spawn-sh "~/.config/niri/summon-workspace.sh '\u{f086}' '\u{f11b}' '\u{f086}' '\u{f075a}' '\u{f0ac}'; elecwhat"; }
+    Mod+O      hotkey-overlay-title="Notes: Obsidian"     { spawn "obsidian"; }
+    Mod+X      hotkey-overlay-title="VPN: Proton"         { spawn "protonvpn-app"; }
+    // KDE also had KCalc on Meta+K; here Mod+K is focus-up (h/j/k/l).
+    XF86Calculator hotkey-overlay-title="Calculator: KCalc" { spawn "kcalc"; }
+
+    // ── Noctalia shell ──
+    Mod+Space             hotkey-overlay-title="Launcher"          { spawn-sh "noctalia msg panel-toggle launcher"; }
+    Mod+S           hotkey-overlay-title="Control center"    { spawn-sh "noctalia msg panel-toggle control-center"; }
+    Mod+Shift+Comma hotkey-overlay-title="Noctalia settings" { spawn-sh "noctalia msg settings-toggle"; }
+    Mod+Shift+V     hotkey-overlay-title="Clipboard history" { spawn-sh "noctalia msg panel-toggle clipboard"; }
+    Mod+Shift+W     hotkey-overlay-title="Wallpaper picker"  { spawn-sh "noctalia msg panel-toggle wallpaper"; }
+    Mod+Ctrl+W      hotkey-overlay-title="Random wallpaper"  { spawn-sh "noctalia msg wallpaper-random"; }
+    Mod+Shift+E     hotkey-overlay-title="Session menu"      { spawn-sh "noctalia msg panel-toggle session"; }
+    XF86PowerOff    hotkey-overlay-title=null                { spawn-sh "noctalia msg panel-toggle session"; }
+    Super+Alt+L     hotkey-overlay-title="Lock screen"       { spawn-sh "noctalia msg session lock"; }
+    Mod+N           hotkey-overlay-title="Do not disturb"    { spawn-sh "noctalia msg notification-dnd-toggle"; }
+    Mod+Shift+N     hotkey-overlay-title=null                { spawn-sh "noctalia msg notification-clear-history"; }
+    Mod+Shift+T     hotkey-overlay-title="Light/dark theme"  { spawn-sh "noctalia msg theme-mode-toggle"; }
+    Mod+Shift+D     hotkey-overlay-title="Toggle dock"       { spawn-sh "noctalia msg dock-toggle"; }
+    Mod+Shift+B     hotkey-overlay-title="Toggle bar"        { spawn-sh "noctalia msg bar-toggle"; }
+    Mod+Ctrl+N      hotkey-overlay-title="Night light"       { spawn-sh "noctalia msg nightlight-toggle"; }
+    Mod+Ctrl+C      hotkey-overlay-title="Caffeine (no idle)" { spawn-sh "noctalia msg caffeine-toggle"; }
+    Mod+Shift+S     hotkey-overlay-title="Screenshot region (annotate)" { spawn-sh "noctalia msg screenshot-region"; }
+    // Alt+Tab is the overview (below); Noctalia's switcher is unbound.
+    // Alt+Tab         hotkey-overlay-title="Window switcher"   { spawn-sh "noctalia msg window-switcher hold"; }
+
+    // Hardware keys through noctalia (shows its OSD). Work on the lock screen too.
+    XF86AudioRaiseVolume  allow-when-locked=true { spawn-sh "noctalia msg volume-up"; }
+    XF86AudioLowerVolume  allow-when-locked=true { spawn-sh "noctalia msg volume-down"; }
+    XF86AudioMute         allow-when-locked=true { spawn-sh "noctalia msg volume-mute"; }
+    XF86AudioMicMute      allow-when-locked=true { spawn-sh "noctalia msg mic-mute"; }
+    XF86AudioPlay         allow-when-locked=true { spawn-sh "noctalia msg media toggle"; }
+    XF86AudioPause        allow-when-locked=true { spawn-sh "noctalia msg media toggle"; }
+    XF86AudioNext         allow-when-locked=true { spawn-sh "noctalia msg media next"; }
+    XF86AudioPrev         allow-when-locked=true { spawn-sh "noctalia msg media previous"; }
+    XF86MonBrightnessUp   allow-when-locked=true { spawn-sh "noctalia msg brightness-up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn-sh "noctalia msg brightness-down"; }
+
+    // ── Windows ──
+    Mod+Shift+C repeat=false { close-window; }
+    // Overview: Alt+Tab or 4-finger swipe up (Mod+Tab is previous workspace).
+    Alt+Tab repeat=false hotkey-overlay-title="Overview" { toggle-overview; }
+
+    Mod+Left  { focus-column-left; }
+    Mod+Down  { focus-window-or-workspace-down; }
+    Mod+Up    { focus-window-or-workspace-up; }
+    Mod+Right { focus-column-right; }
+    Mod+H     { focus-column-left; }
+    Mod+J     { focus-window-or-workspace-down; }
+    Mod+K     { focus-window-or-workspace-up; }
+    Mod+L     { focus-column-right; }
+
+    Mod+Ctrl+Left  { move-column-left; }
+    Mod+Ctrl+Down  { move-window-down-or-to-workspace-down; }
+    Mod+Ctrl+Up    { move-window-up-or-to-workspace-up; }
+    Mod+Ctrl+Right { move-column-right; }
+    Mod+Ctrl+H     { move-column-left; }
+    Mod+Ctrl+J     { move-window-down-or-to-workspace-down; }
+    Mod+Ctrl+K     { move-window-up-or-to-workspace-up; }
+    Mod+Ctrl+L     { move-column-right; }
+
+    Mod+Home      { focus-column-first; }
+    Mod+End       { focus-column-last; }
+    Mod+Ctrl+Home { move-column-to-first; }
+    Mod+Ctrl+End  { move-column-to-last; }
+
+    // ── Monitors ──
+    Mod+Shift+Left  { focus-monitor-left; }
+    Mod+Shift+Right { focus-monitor-right; }
+    Mod+Shift+Up    { focus-monitor-up; }
+    Mod+Shift+Down  { focus-monitor-down; }
+    Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
+    Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
+    Mod+Shift+Ctrl+Up    { move-column-to-monitor-up; }
+    Mod+Shift+Ctrl+Down  { move-column-to-monitor-down; }
+
+    // ── Workspaces ──
+    Mod+Page_Down      { focus-workspace-down; }
+    Mod+Page_Up        { focus-workspace-up; }
+    Mod+U              { focus-workspace-down; }
+    Mod+I              { focus-workspace-up; }
+    Mod+Ctrl+Page_Down { move-column-to-workspace-down; }
+    Mod+Ctrl+Page_Up   { move-column-to-workspace-up; }
+    Mod+Ctrl+U         { move-column-to-workspace-down; }
+    Mod+Ctrl+I         { move-column-to-workspace-up; }
+    Mod+Shift+Page_Down { move-workspace-down; }
+    Mod+Shift+Page_Up   { move-workspace-up; }
+    Mod+Tab             { focus-workspace-previous; }
+    Mod+Escape          { focus-workspace-previous; }
+
+    // Named workspaces (declared near the top). Plain ones have no number
+    // keys: niri deletes empty ones and renumbers, so a slot number never
+    // stays put. Reach them with Mod+U/I, Mod+Shift+scroll or the overview.
+    // Summon instead of jump: the workspace comes to the focused monitor (back
+    // into its slot) rather than sending you to whichever screen holds it.
+    // Rollback: delete these four and uncomment the focus-workspace lines below.
+    Mod+1 hotkey-overlay-title="Workspace: games" { spawn-sh "~/.config/niri/summon-workspace.sh '\u{f11b}' '\u{f11b}' '\u{f086}' '\u{f075a}' '\u{f0ac}'"; }
+    Mod+2 hotkey-overlay-title="Workspace: chat" { spawn-sh "~/.config/niri/summon-workspace.sh '\u{f086}' '\u{f11b}' '\u{f086}' '\u{f075a}' '\u{f0ac}'"; }
+    Mod+3 hotkey-overlay-title="Workspace: music" { spawn-sh "~/.config/niri/summon-workspace.sh '\u{f075a}' '\u{f11b}' '\u{f086}' '\u{f075a}' '\u{f0ac}'"; }
+    Mod+4 hotkey-overlay-title="Workspace: web" { spawn-sh "~/.config/niri/summon-workspace.sh '\u{f0ac}' '\u{f11b}' '\u{f086}' '\u{f075a}' '\u{f0ac}'"; }
+    // Mod+1 hotkey-overlay-title="Workspace: games" { focus-workspace "\u{f11b}"; }
+    // Mod+2 hotkey-overlay-title="Workspace: chat"  { focus-workspace "\u{f086}"; }
+    // Mod+3 hotkey-overlay-title="Workspace: music" { focus-workspace "\u{f075a}"; }
+    // Mod+4 hotkey-overlay-title="Workspace: web"   { focus-workspace "\u{f0ac}"; }
+    Mod+Ctrl+1 { move-column-to-workspace "\u{f11b}"; }
+    Mod+Ctrl+2 { move-column-to-workspace "\u{f086}"; }
+    Mod+Ctrl+3 { move-column-to-workspace "\u{f075a}"; }
+    Mod+Ctrl+4 { move-column-to-workspace "\u{f0ac}"; }
+    // Carry the whole current workspace (named or not) to the other monitor.
+    Mod+Shift+Alt+Left  { move-workspace-to-monitor-left; }
+    Mod+Shift+Alt+Right { move-workspace-to-monitor-right; }
+
+    // Mouse wheel / touchpad.
+    // Plain Mod+wheel scrolls the strip of columns; add Shift for workspaces.
+    // No cooldown on Shift: with cooldown-ms=150 a fast flick moved only one
+    // workspace and the rest of the notches were swallowed. Each notch is one
+    // workspace now. Ctrl keeps it — it MOVES the column, a skid is costly.
+    Mod+WheelScrollDown       { focus-column-right; }
+    Mod+WheelScrollUp         { focus-column-left; }
+    Mod+Shift+WheelScrollDown { focus-workspace-down; }
+    Mod+Shift+WheelScrollUp   { focus-workspace-up; }
+    Mod+Ctrl+WheelScrollDown cooldown-ms=150 { move-column-to-workspace-down; }
+    Mod+Ctrl+WheelScrollUp   cooldown-ms=150 { move-column-to-workspace-up; }
+    Mod+WheelScrollRight      { focus-column-right; }
+    Mod+WheelScrollLeft       { focus-column-left; }
+
+    // ── Columns: stacking, tabs, sizes ──
+    // The <> key (left of Z) works like the mouse wheel: < left, > right
+    // (> is Shift+< on this layout; niri matches the unshifted "less").
+    // Ctrl makes it vertical: < up a workspace, > down one.
+    // (Used to be consume-or-expel; Mod+Comma/Period still stack/unstack.)
+    Mod+less              { focus-column-left; }
+    Mod+Shift+less        { focus-column-right; }
+    Mod+Ctrl+less         { focus-workspace-up; }
+    Mod+Ctrl+Shift+less   { focus-workspace-down; }
+    Mod+Comma        { consume-window-into-column; }
+    Mod+Period       { expel-window-from-column; }
+    Mod+T            { toggle-column-tabbed-display; }
+
+    Mod+R            { switch-preset-column-width; }
+    Mod+Shift+R      { switch-preset-column-width-back; }
+    Mod+Ctrl+Shift+R { switch-preset-window-height; }
+    Mod+Ctrl+R       { reset-window-height; }
+    // Back to the default width (layout's default-column-width; keep in sync).
+    Mod+masculine    hotkey-overlay-title="Reset width to default" { set-column-width "75%"; }
+    Mod+A            { maximize-column; }
+    // Undo Mod+A: default width (keep in sync with default-column-width) and auto height.
+    Mod+Ctrl+A       hotkey-overlay-title="Reset window to default size" { spawn-sh "niri msg action set-column-width 75% && niri msg action reset-window-height"; }
+    Mod+F            { fullscreen-window; }
+    Mod+Ctrl+F       { expand-column-to-available-width; }
+    Mod+C            { center-column; }
+    Mod+Alt+C        { center-visible-columns; }
+
+    Mod+Minus       { set-column-width "-10%"; }
+    Mod+plus        { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+plus  { set-window-height "+10%"; }
+
+    // ── Floating ──
+    Mod+V      { toggle-window-floating; }
+    Mod+Ctrl+V { switch-focus-between-floating-and-tiling; }
+
+    // ── niri's built-in screenshots (interactive UI, saved + copied) ──
+    Print      { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print  { screenshot-window; }
+
+    // ── Escape hatches ──
+    Mod+Ctrl+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+    Ctrl+Alt+Delete { quit; }
+    Mod+Shift+P     { power-off-monitors; }
+}
+
+// ── Monitors (scale, mode, position) ───────────────────────────────────────
+// Written by nwg-displays (control center → Displays tile) and reloaded by it.
+// Edit it there or by hand; output blocks go in that file, not here.
+// Plain include, not optional=true: nwg-displays looks for the literal text
+// `include "monitor.kdl"` and prepends a second include if it's missing. So the
+// file is kept in the repo (empty = niri's defaults) to make it always exist.
+include "monitor.kdl"
+
+// ── Theme colors from noctalia (keep this LAST so it overrides the fallbacks) ─
+// Generated from the wallpaper palette by noctalia's [theme.templates.user.niri].
+// optional=true: niri still starts before noctalia has written it once.
+include optional=true "noctalia-colors.kdl"

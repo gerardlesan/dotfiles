@@ -42,3 +42,7 @@ __pycache__/
 tests/rust-sample/target/
 tests/rust-sample/Cargo.lock
 tests/shots/
+
+# niri/noctalia: backups left by manual edits and nwg-displays
+*.bak-*
+*.bak

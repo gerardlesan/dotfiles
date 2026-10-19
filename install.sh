@@ -13,8 +13,9 @@
 #
 # On Linux it also COPIES ghostty/config and starship/starship.toml into
 # ~/.config (copied, not linked — see section 5 for why). Existing files are
-# backed up with a timestamp first. Both steps are skipped on macOS and are not
-# mirrored in install.ps1.
+# backed up with a timestamp first. It SYMLINKS niri/niri and niri/noctalia to
+# ~/.config/niri and ~/.config/noctalia. All of these are skipped on macOS and
+# are not mirrored in install.ps1.
 
 set -euo pipefail
 
@@ -480,6 +481,45 @@ if [ "$OS" = "Linux" ]; then
     echo "                   ~/.config/fastfetch/fetch.py"
     echo "               end"
     echo "           end"
+  fi
+
+  step "niri + noctalia"
+  # SYMLINKED, unlike the copies above: noctalia rewrites its own config.toml and
+  # regenerates niri/noctalia-colors.kdl from its palette, and those writes are the
+  # tuning worth committing. A copy would strand them in ~/.config. Same
+  # link/backup rules as the nvim link in section 4. niri follows the symlinked
+  # directory fine — `niri validate` loads ~/.config/niri/config.kdl through it.
+  link_dir() { # repo-relative source dir, absolute target, human name
+    local src="$REPO_ROOT/$1" dst="$2" name="$3"
+    if [ -L "$dst" ]; then
+      if [ "$(readlink -f "$dst" || readlink "$dst")" = "$src" ]; then
+        ok "$name: already linked"
+        return 0
+      fi
+      warn "$name: $dst points at $(readlink "$dst")"
+      if [ "$FORCE" != "1" ]; then
+        read -r -p "  Replace it? [y/N] " ans
+        [[ "$ans" =~ ^[Yy]$ ]] || { warn "$name: skipped"; return 0; }
+      fi
+      rm "$dst" # removes only the symlink, never the target
+    elif [ -e "$dst" ]; then
+      local backup="$dst.backup-$(date +%Y%m%d-%H%M%S)"
+      warn "$name: $dst exists as a real directory"
+      if [ "$FORCE" != "1" ]; then
+        read -r -p "  Back it up to $(basename "$backup") and replace? [y/N] " ans
+        [[ "$ans" =~ ^[Yy]$ ]] || { warn "$name: skipped"; return 0; }
+      fi
+      mv "$dst" "$backup"
+      ok "$name: backed up to $backup"
+    fi
+    mkdir -p "$(dirname "$dst")"
+    ln -s "$src" "$dst"
+    ok "$name: symlinked $dst -> $src"
+  }
+  link_dir "niri/niri" "$CONFIG_HOME/niri" "niri"
+  link_dir "niri/noctalia" "$CONFIG_HOME/noctalia" "noctalia"
+  if have niri; then
+    niri validate >/dev/null 2>&1 && ok "niri validate: config is valid" || warn "niri validate failed — run it for details"
   fi
 fi
 
