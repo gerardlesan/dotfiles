@@ -709,6 +709,7 @@ binds {
 
     // ── niri's built-in screenshots (interactive UI, saved + copied) ──
     Print      { screenshot; }
+    Mod+Print  { screenshot; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print  { screenshot-window; }
 
