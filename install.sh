@@ -518,6 +518,20 @@ if [ "$OS" = "Linux" ]; then
   }
   link_dir "niri/niri" "$CONFIG_HOME/niri" "niri"
   link_dir "niri/noctalia" "$CONFIG_HOME/noctalia" "noctalia"
+  # Default apps under niri: PDFs in Zen, Dolphin for folders, "reveal file"
+  # and Open/Save dialogs. Each file's header says why. link_dir works on
+  # single files too.
+  link_dir "niri/xdg/niri-mimeapps.list" "$CONFIG_HOME/niri-mimeapps.list" "niri-mimeapps.list"
+  link_dir "niri/xdg/niri-portals.conf" "$CONFIG_HOME/xdg-desktop-portal/niri-portals.conf" "niri-portals.conf"
+  link_dir "niri/xdg/org.freedesktop.FileManager1.service" \
+    "${XDG_DATA_HOME:-$HOME/.local/share}/dbus-1/services/org.freedesktop.FileManager1.service" "FileManager1"
+  # Mod+E (`dolphin`) and "reveal file" open a tab in the running Dolphin
+  # window instead of a new one. dolphinrc is rewritten by Dolphin, so it is
+  # set rather than linked. A running Dolphin reads it only at start.
+  if have kwriteconfig6; then
+    kwriteconfig6 --file dolphinrc --group General --key OpenExternallyCalledFolderInNewTab true
+    ok "dolphin: external folders open as tabs"
+  fi
   if have niri; then
     niri validate >/dev/null 2>&1 && ok "niri validate: config is valid" || warn "niri validate failed — run it for details"
   fi

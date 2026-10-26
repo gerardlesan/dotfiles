@@ -1,0 +1,7 @@
+# niri-only default apps, linked to ~/.config/niri-mimeapps.list by install.sh.
+# The XDG spec reads $XDG_CURRENT_DESKTOP-mimeapps.list (here "niri") before
+# ~/.config/mimeapps.list, so this wins under niri and Plasma never sees it.
+# Check with: XDG_CURRENT_DESKTOP=niri xdg-mime query default application/pdf
+[Default Applications]
+application/pdf=zen.desktop
+inode/directory=org.kde.dolphin.desktop

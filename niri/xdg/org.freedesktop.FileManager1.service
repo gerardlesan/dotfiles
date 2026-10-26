@@ -1,0 +1,9 @@
+# "Show in folder" / "Reveal file" in any app is a D-Bus call to
+# org.freedesktop.FileManager1. Both nautilus and dolphin ship a service file
+# claiming that name in /usr/share/dbus-1/services, so which one starts was
+# down to lookup order (it was nautilus). This copy of dolphin's, linked into
+# ~/.local/share/dbus-1/services by install.sh, is searched first.
+[D-BUS Service]
+Name=org.freedesktop.FileManager1
+Exec=/usr/bin/dolphin --daemon
+SystemdService=plasma-dolphin.service
