@@ -13,8 +13,8 @@
 #
 # On Linux it also COPIES ghostty/config and starship/starship.toml into
 # ~/.config (copied, not linked — see section 5 for why). Existing files are
-# backed up with a timestamp first. It SYMLINKS niri/niri and niri/noctalia to
-# ~/.config/niri and ~/.config/noctalia. All of these are skipped on macOS and
+# backed up with a timestamp first. It SYMLINKS niri/niri, niri/noctalia and zed
+# to ~/.config/niri, ~/.config/noctalia and ~/.config/zed. All of these are skipped on macOS and
 # are not mirrored in install.ps1.
 
 set -euo pipefail
@@ -539,6 +539,16 @@ if [ "$OS" = "Linux" ]; then
   if have niri; then
     niri validate >/dev/null 2>&1 && ok "niri validate: config is valid" || warn "niri validate failed — run it for details"
   fi
+
+  step "Zed"
+  # SYMLINKED for noctalia's reason: Zed rewrites settings.json itself (theme
+  # picker, settings UI, profile switches), and the theming lives in its
+  # theme_overrides block — those writes are what this is here to track. The
+  # DIRECTORY is linked, not the file: a save that writes a temp file and renames
+  # it over settings.json would replace a file symlink with a plain file and
+  # silently untrack it; a rename inside a linked directory lands in the repo.
+  link_dir "zed" "$CONFIG_HOME/zed" "zed"
+  have zeditor || warn "Zed not on PATH — Arch: sudo pacman -S zed"
 fi
 
 # ── 6. WezTerm config ─────────────────────────────────────────────────────────

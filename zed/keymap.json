@@ -1,0 +1,96 @@
+// Zed keymap
+//
+// For information on binding keys, see the Zed
+// documentation: https://zed.dev/docs/key-bindings
+//
+// To see the default key bindings run `zed: open default keymap`
+// from the command palette.
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      // "shift shift": "file_finder::Toggle"
+    },
+  },
+  {
+    "context": "Editor && vim_mode == insert",
+    "bindings": {
+      // "j k": "vim::NormalBefore"
+    },
+  },
+  {
+    "context": "vim_mode == literal",
+    "unbind": {
+      "ctrl-\\": [
+        "vim::Literal",
+        [
+          "ctrl-\\",
+          "\u001c"
+        ]
+      ]
+    }
+  },
+  {
+    "context": "Editor",
+    "bindings": {
+      "ctrl-tab right": "pane::SplitRight"
+    }
+  },
+  {
+    "context": "Editor",
+    "unbind": {
+      "ctrl-\\": "pane::SplitRight"
+    }
+  },
+  {
+    "bindings": {
+      "ctrl-\\": "workspace::NewCenterTerminal"
+    }
+  },
+  {
+    "context": "VimControl && !menu",
+    "unbind": {
+      "ctrl-j": "vim::Down"
+    }
+  },
+  {
+    "context": "Terminal",
+      "bindings": {
+      "ctrl-escape": "workspace::FocusCenterPane"
+    }
+  },
+  {
+    "context": "Workspace",
+    "bindings": {
+      "shift-f4": "task::Spawn"
+    }
+  },
+  {
+    "context": "Workspace",
+    "unbind": {
+      "alt-shift-t": "task::Spawn"
+    }
+  },
+  {
+    "context": "Workspace",
+    "bindings": {
+      "f4": ["task::Rerun", { "reevaluate_context": true }]
+    }
+  },
+  {
+    "context": "Workspace",
+    "unbind": {
+      "alt-t": "task::Rerun"
+    }
+  },
+  {
+    "unbind": {
+      "f4": "debugger::Start"
+    }
+  },
+  {
+    "bindings": {
+      "ctrl-alt-p": "settings_profile_selector::Toggle"
+    }
+  }
+]

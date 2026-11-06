@@ -1,0 +1,14 @@
+[
+  {
+    "label": "run python file",
+    "command": "python3",
+    "args": ["$ZED_FILE"],
+    "cwd": "$ZED_DIRNAME",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "show_summary": false,
+    "show_command": false,
+    "save": "current"
+  }
+]

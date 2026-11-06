@@ -1,0 +1,234 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "proxy": "",
+  "edit_predictions": {
+    "mode": "eager",
+    "allow_data_collection": "no",
+    "provider": "ollama",
+    "ollama": {
+      "api_url": "http://localhost:11434",
+      "model": "zeta2.1",
+      "prompt_format": "infer"
+    }
+  },
+  "profiles": {
+    "Zed": {
+      "settings": {
+        "edit_predictions": {
+          "provider": "ollama",
+          "ollama": {
+            "api_url": "http://localhost:11434",
+            "model": "zeta2.1",
+            "prompt_format": "infer"
+          }
+        }
+      }
+    },
+    "Qwen": {
+      "settings": {
+        "edit_predictions": {
+          "provider": "ollama",
+          "ollama": {
+            "api_url": "http://localhost:11434",
+            "model": "qwen2.5-coder:7b-base",
+            "prompt_format": "infer"
+          }
+        }
+      }
+    }
+  },
+  "agent": {
+    "favorite_models": [],
+    "model_parameters": [],
+    "enable_feedback": false
+  },
+  "rounded_selection": true,
+  "code_lens": "off",
+  // show_background is read from the top-level (default) language settings only;
+  // setting it under languages.Rust does nothing.
+  "inlay_hints": {
+    "show_type_hints": false,
+    "show_value_hints": true,
+    "enabled": true,
+    "show_background": true
+  },
+  "languages": {
+    "Rust": {
+      "inlay_hints": {
+        "show_value_hints": true,
+        "show_type_hints": true,
+        "show_parameter_hints": true,
+        "show_other_hints": true,
+        "enabled": true
+      }
+    }
+  },
+  "diagnostics": {
+    "inline": {
+      "padding": 10,
+      "enabled": true
+    }
+  },
+  "semantic_tokens": "combined",
+  "vim": {
+    "toggle_relative_line_numbers": true
+  },
+  "relative_line_numbers": "enabled",
+  "agent_buffer_font_size": 15.0,
+  "terminal": {
+    "show_count_badge": false,
+    "starts_open": true,
+    "bell": "off",
+    // Absolute, not a ratio: bump manually if buffer_font_size changes.
+    "font_size": 13.5,
+    "shell": "system"
+  },
+  // No tabs at all: the strip is hidden, and max_tabs 1 means opening a file
+  // replaces the current one instead of piling up hidden tabs behind it (a dirty
+  // buffer is never auto-closed, so it can briefly exceed 1). Navigate with
+  // ctrl-p / ctrl-o instead. Preview tabs off so there is no second, temporary one.
+  "tab_bar": { "show": false },
+  "max_tabs": 1,
+  "preview_tabs": { "enabled": false },
+  "tabs": {
+    "show_diagnostics": "errors",
+    "file_icons": true,
+    "git_status": true
+  },
+  "title_bar": {
+    "show_branch_status_icon": true
+  },
+  "status_bar": {
+    "show_active_file": true,
+    "line_endings_button": true,
+    "active_language_button": true
+  },
+  "project_panel": {
+    "sort_order": "unicode",
+    "sort_mode": "directories_first",
+    "hide_root": true,
+    "git_status_indicator": true,
+    "diagnostic_badges": true,
+    "indent_size": 18.0,
+    "entry_spacing": "standard",
+    "default_width": 244.0,
+    "dock": "left",
+    "button": true
+  },
+  "disable_ai": false,
+  "buffer_font_family": "JetBrainsMono Nerd Font",
+  "icon_theme": "Colored Zed Icons Theme Dark",
+  "cli_default_open_behavior": "new_window",
+  "redact_private_values": false,
+  "session": {
+    "trust_all_worktrees": true
+  },
+  "telemetry": {
+    "diagnostics": true,
+    "metrics": false,
+    "anthropic_retention": false
+  },
+  "base_keymap": "VSCode",
+  "vim_mode": true,
+  "ui_font_size": 16,
+  "buffer_font_size": 15.0,
+  "theme": "Ayu Dark",
+
+  "experimental.theme_overrides": {
+    "syntax": {
+      "comment": {
+        "font_style": "italic"
+      },
+      "hint": {
+        "font_style":"italic"
+      }
+    }
+  },
+  "theme_overrides": {
+    "Ayu Dark": {
+      "elevated_surface.background": "#060D06FF",
+      "surface.background": "#060D06FF",
+      "background": "#0A1C0FFF",
+      "text.accent": "#82FAA2FF",
+      "icon.accent": "#82FAA2FF",
+      "status_bar.background": "#0A1C0FFF",
+      "title_bar.background": "#0A1C0FFF",
+      "toolbar.background": "#090D09FF",
+      "tab_bar.background": "#060D06FF",
+      "tab.inactive_background": "#060D06FF",
+      "tab.active_background": "#090D09FF",
+      "panel.background": "#060D06FF",
+      "panel.focused_border": "#47B2B5FF",
+      "editor.background": "#090D09FF",
+      "editor.gutter.background": "#090D09FF",
+      "editor.subheader.background": "#060D06FF",
+      "editor.highlighted_line.background": "#060D06FF",
+      "terminal.background": "#090D09FF",
+      "link_text.hover": "#82FAA2FF",
+      "created": "#98D69FFF",
+      "hint": "#404040FF",
+      "hint.background": "#2E2D2D2B",
+      "hint.border": "#3D618003",
+      "syntax": {
+        "attribute": {
+          "color": "#E07F28FF"
+        },
+        "boolean": {
+          "color": "#FFB0FBFF"
+        },
+        "constant": {
+          "color": "#6805ABFF"
+        },
+        "enum": {
+          "color": "#DE662FFF"
+        },
+        "function": {
+          "color": "#E87B33FF"
+        },
+        "keyword": {
+          "color": "#C761D4FF"
+        },
+        "label": {
+          "color": "#2170ADFF"
+        },
+        "number": {
+          "color": "#87FFF7FF"
+        },
+        "operator": {
+          "color": "#C9AA47FF"
+        },
+        "preproc": {
+          "color": "#AB7435FF"
+        },
+        "string": {
+          "color": "#7FC251FF"
+        },
+        "string.escape": {
+          "color": "#8A8787FF"
+        },
+        "text.literal": {
+          "color": "#B86D37FF"
+        },
+        "variable": {
+          "color": "#FEFFCFFF"
+        },
+        "variable.parameter": {
+          "color": "#4FFFCDFF"
+        },
+        "variant": {
+          "color": "#369AC7FF"
+        }
+      },
+      "panel.overlay_background": "#060D06FF",
+      "panel.overlay_hover": "#0A1C0FFF",
+      "version_control.added": "#98D69FFF"
+    }
+  }
+}

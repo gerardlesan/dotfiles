@@ -1,0 +1,2 @@
+# Zed writes a backup next to settings.json on migrations; not config.
+*.bak
