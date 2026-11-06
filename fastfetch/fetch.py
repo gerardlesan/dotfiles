@@ -120,14 +120,19 @@ def apc(keys, data=b""):
     return b"\x1b_G" + keys.encode() + (b";" + data if data else b"") + b"\x1b\\"
 
 
-def send(fd, img, path):
-    # a=t only, never a=T: re-transmitting replaces the stored image and keeps
-    # its placements; a=T would add a new placement every frame. q=2 so the
-    # terminal never answers into the shell's input.
-    os.write(fd, apc(f"a=t,f=100,t=f,i={img},q=2", base64.b64encode(path.encode())))
+def send(fd, img, path, place):
+    # Transmit, then re-place every frame. Ghostty 1.4.0 deletes an image's
+    # placements when it is re-transmitted under the same id (1.3 kept them), so
+    # without the a=p the logo went blank on the first loop frame — at any width.
+    # The fixed p=1 in `place` is what makes it safe where placements DO survive
+    # (Ghostty 1.3, kitty): the same placement id replaces, a bare a=p would add
+    # one per frame. Verified on 1.4.0 by screenshot 2026-10-30: re-transmit
+    # alone blanks it, re-transmit + re-place animates. a=t, not a=T, keeps the
+    # two steps separate. q=2 so the terminal never answers into the shell's input.
+    os.write(fd, apc(f"a=t,f=100,t=f,i={img},q=2", base64.b64encode(path.encode())) + place)
 
 
-def loop(fd, img, frames, fps, shell_pgid, pidfile):
+def loop(fd, img, place, frames, fps, shell_pgid, pidfile):
     """Forked child: advance the frame while the shell owns the terminal.
 
     Writes only when the shell's process group is in the foreground, i.e. at
@@ -149,7 +154,7 @@ def loop(fd, img, frames, fps, shell_pgid, pidfile):
     while True:
         try:
             if os.tcgetpgrp(fd) == shell_pgid:
-                send(fd, img, frames[k % len(frames)])
+                send(fd, img, frames[k % len(frames)], place)
                 k += 1
             with open(pidfile) as f:
                 if f.read() != me:
@@ -186,8 +191,8 @@ def main():
     frames = [os.path.join(d, f"{i:03d}.png") for i in range(n)]
     fd = os.open(os.ttyname(1), os.O_WRONLY | os.O_NOCTTY)
     img = int.from_bytes(os.urandom(3), "big") | 0x100000      # 24-bit, clear of small ids apps use
-    send(fd, img, frames[0])
-    os.write(fd, apc(f"a=p,U=1,i={img},c={cols},r={rows},q=2"))
+    place = apc(f"a=p,U=1,i={img},p=1,c={cols},r={rows},q=2")
+    send(fd, img, frames[0], place)
     r, g, b = img >> 16, (img >> 8) & 255, img & 255
     tty = os.ttyname(1).replace("/", "_")
     # one per tty, overwritten each run and never deleted: deleting it from the
@@ -200,7 +205,7 @@ def main():
     shell_pgid = os.getpgid(os.getppid())
     if os.fork() == 0:
         os.close(0)
-        loop(fd, img, frames, fps, shell_pgid, pidfile)
+        loop(fd, img, place, frames, fps, shell_pgid, pidfile)
     # exec, not spawn: fastfetch's parent stays the shell, so "Shell:" stays right
     fastfetch("--file-raw", logo, "--logo-width", str(cols), "--logo-height", str(rows))
 
