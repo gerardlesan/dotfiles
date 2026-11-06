@@ -9,8 +9,10 @@
 
 // ── Design foundations (shared with noctalia's config.toml) ─────────────────
 // Change a token here AND in noctalia's config so both stay in sync.
-//   spacing   4px grid: gap 12 (between windows, bar/dock to screen edge, popups)
-//   radius    sm 8 (tabs, pills) · md 12 (windows, bar, switcher) · lg 16 (dock, dialogs)
+//   spacing   margin 8: between windows, screen edges, bar to windows; the bar
+//             is attached to the top with its ends at x=8. Dock/popups still use 12.
+//   radius    sm 6 (tabs) · md 10 (windows, switcher) · lg 14 (dialogs); 2px under
+//             the old 8/12/16. Bar and dock radii live in noctalia.
 //   elevation one shadow: softness 30, spread 5, y +6, black at 44% (#00000070)
 //             overview workspaces sit one level higher (softness 40, y +10)
 //   color     ONE source: noctalia generates noctalia-colors.kdl from the wallpaper
@@ -98,7 +100,9 @@ input {
 
 // ── Layout ──────────────────────────────────────────────────────────────────
 layout {
-    gaps 12
+    // Between windows AND at the screen edges (niri uses one value for both),
+    // matching noctalia's bar margin_edge/margin_ends.
+    gaps 8
     // "never": the view scrolls only as far as needed, so the first column
     // always sits flush against the left edge. "on-overflow" centred any
     // column that didn't fit beside its neighbour (every 3/4-wide one),
@@ -161,7 +165,7 @@ layout {
         gap 5
         width 4
         position "left"
-        corner-radius 8
+        corner-radius 6
     }
 
     // Preview of where a dragged window will land.
@@ -169,7 +173,8 @@ layout {
         color "#cba6f780"
     }
 
-    // Outer gaps. Left/right struts keep a peek of the neighbour columns.
+    // Outer gaps, ADDED to `gaps` at the screen edges. None: `gaps` alone
+    // gives the 8px margin. Left/right struts keep a peek of the neighbour columns.
     struts {
         // left 32
         // right 32
@@ -270,7 +275,7 @@ recent-windows {
         active-color "#8ab4f8"
         urgent-color "#f2b8b5"
         padding 24
-        corner-radius 12
+        corner-radius 10
     }
     previews {
         max-height 480
@@ -322,7 +327,7 @@ animations {
 
 // Rounded corners for everything.
 window-rule {
-    geometry-corner-radius 12
+    geometry-corner-radius 10
     clip-to-geometry true
     // Ignore apps that ask to open maximized; niri would honour that as
     // maximize-to-edges. They open at the default column width instead.
@@ -345,13 +350,14 @@ window-rule {
 window-rule {
     match app-id=r#"^com\.mitchellh\.ghostty$"#
     opacity 0.95
-    // Narrowest width that gives 94 columns on the external 1080p display at scale 1
-    // (stty size, stepping set-window-width a pixel at a time), which is what
-    // fastfetch/fetch.py needs to draw the logo (36 + PANE_COLS 58). 943 gave 93 and
-    // silently dropped it; the old 898 was measured on the laptop at scale 1.2 and
-    // gives only 89 here. Change the font, padding or display scale → re-measure.
+    // 94 columns is what fastfetch/fetch.py needs to draw the logo (36 + PANE_COLS
+    // 58); one fewer and it silently drops it. Measured 2026-10-30 on DP-1 (1440p)
+    // at scale 1.2, same scale as the laptop, with stty size while stepping
+    // set-window-width: 944 → 93, 945..955 → 94, 956 → 95. 950 sits mid-band so
+    // fractional-scale rounding can't tip it. (The old 944 was measured at scale 1.)
+    // Change the font, padding or display scale → re-measure.
     // desktop-helper.py skips Ghostty, so it keeps this even when first on a workspace.
-    default-column-width { fixed 944; }
+    default-column-width { fixed 950; }
     background-effect {
         blur true
     }
@@ -363,7 +369,7 @@ window-rule {
     open-floating true
     default-column-width { fixed 1080; }
     default-window-height { fixed 920; }
-    geometry-corner-radius 16
+    geometry-corner-radius 14
 }
 
 // Small utility windows float.
@@ -374,6 +380,18 @@ window-rule {
     match title=r#"^Picture.in.Picture$"#
     match title=r#"^(Open|Save) File"#
     open-floating true
+}
+
+// KCalc (Mod+K) opens 350x500, 300 px from the left edge and centred
+// vertically. relative-to="left" centres the other axis itself, so this holds
+// on 1080p and 1440p alike; a fixed y could only be right for one of them.
+// (Centred in the working area below the noctalia bar, so 16 px under the
+// exact screen middle.)
+window-rule {
+    match app-id=r#"^org\.kde\.kcalc$"#
+    default-column-width { fixed 350; }
+    default-window-height { fixed 500; }
+    default-floating-position x=300 y=0 relative-to="left"
 }
 
 // Popups and dialogs float. niri already floats dialogs that have a parent
@@ -404,6 +422,18 @@ window-rule {
     match app-id=r#"^VirtualBox( Manager| Machine)?$"#
     exclude title=r#"Oracle (VM )?VirtualBox( Manager)?$"#
     open-floating true
+}
+
+// Zed opens its Settings (and Rules Library) as separate top-level windows
+// with the main app-id, so niri tiled them as a new column. Workspace windows
+// are titled "<project> — <file>"; the auxiliary ones start "Zed — "
+// ("Zed — Settings" seen live 2026-11-06, Zed 1.26.2). Rules Library title is
+// from Zed's source, not yet seen live here.
+window-rule {
+    match app-id=r#"^dev\.zed\.Zed"# title=r#"^(Zed — |Rules Library)"#
+    open-floating true
+    default-column-width { proportion 0.6; }
+    default-window-height { proportion 0.75; }
 }
 
 // Web: only the Zen window started at login (spawn-at-startup above) lands
@@ -547,14 +577,15 @@ binds {
     Mod+W      hotkey-overlay-title="Chat: WhatsApp"      { spawn-sh "~/.config/niri/summon-workspace.sh '\u{f086}' '\u{f11b}' '\u{f086}' '\u{f075a}' '\u{f0ac}'; elecwhat"; }
     Mod+O      hotkey-overlay-title="Notes: Obsidian"     { spawn "obsidian"; }
     Mod+X      hotkey-overlay-title="VPN: Proton"         { spawn "protonvpn-app"; }
-    // KDE also had KCalc on Meta+K; here Mod+K is focus-up (h/j/k/l).
-    XF86Calculator hotkey-overlay-title="Calculator: KCalc" { spawn "kcalc"; }
+    // Mod+K as on KDE; it was focus-up (h/j/k/l), Mod+Up still does that.
+    Mod+K          hotkey-overlay-title="Calculator: KCalc" { spawn "kcalc"; }
+    XF86Calculator hotkey-overlay-title=null                { spawn "kcalc"; }
 
     // ── Noctalia shell ──
     Mod+Space             hotkey-overlay-title="Launcher"          { spawn-sh "noctalia msg panel-toggle launcher"; }
     Mod+S           hotkey-overlay-title="Control center"    { spawn-sh "noctalia msg panel-toggle control-center"; }
     Mod+Shift+Comma hotkey-overlay-title="Noctalia settings" { spawn-sh "noctalia msg settings-toggle"; }
-    Mod+Shift+V     hotkey-overlay-title="Clipboard history" { spawn-sh "noctalia msg panel-toggle clipboard"; }
+    Mod+V           hotkey-overlay-title="Clipboard history" { spawn-sh "noctalia msg panel-toggle clipboard"; }
     Mod+Shift+W     hotkey-overlay-title="Wallpaper picker"  { spawn-sh "noctalia msg panel-toggle wallpaper"; }
     Mod+Ctrl+W      hotkey-overlay-title="Random wallpaper"  { spawn-sh "noctalia msg wallpaper-random"; }
     Mod+Shift+E     hotkey-overlay-title="Session menu"      { spawn-sh "noctalia msg panel-toggle session"; }
@@ -580,8 +611,10 @@ binds {
     XF86AudioPause        allow-when-locked=true { spawn-sh "noctalia msg media toggle"; }
     XF86AudioNext         allow-when-locked=true { spawn-sh "noctalia msg media next"; }
     XF86AudioPrev         allow-when-locked=true { spawn-sh "noctalia msg media previous"; }
-    XF86MonBrightnessUp   allow-when-locked=true { spawn-sh "noctalia msg brightness-up"; }
-    XF86MonBrightnessDown allow-when-locked=true { spawn-sh "noctalia msg brightness-down"; }
+    XF86MonBrightnessUp   allow-when-locked=true { spawn-sh "noctalia msg brightness-up all"; }   // "all" keeps the keys linked; sync_all_monitors is off so the sliders move independently
+    XF86MonBrightnessDown allow-when-locked=true { spawn-sh "noctalia msg brightness-down all"; }
+    Shift+XF86MonBrightnessUp   allow-when-locked=true { spawn-sh "noctalia msg brightness-up"; }   // no target = focused monitor only
+    Shift+XF86MonBrightnessDown allow-when-locked=true { spawn-sh "noctalia msg brightness-down"; }
 
     // ── Windows ──
     Mod+Shift+C repeat=false { close-window; }
@@ -594,7 +627,7 @@ binds {
     Mod+Right { focus-column-right; }
     Mod+H     { focus-column-left; }
     Mod+J     { focus-window-or-workspace-down; }
-    Mod+K     { focus-window-or-workspace-up; }
+    // Mod+K is KCalc (as on KDE), not focus-up; Mod+Up still covers that.
     Mod+L     { focus-column-right; }
 
     Mod+Ctrl+Left  { move-column-left; }
@@ -704,7 +737,7 @@ binds {
     Mod+Shift+plus  { set-window-height "+10%"; }
 
     // ── Floating ──
-    Mod+V      { toggle-window-floating; }
+    Mod+Shift+F { toggle-window-floating; }
     Mod+Ctrl+V { switch-focus-between-floating-and-tiling; }
 
     // ── niri's built-in screenshots (interactive UI, saved + copied) ──

@@ -258,7 +258,7 @@ background_opacity = 0.5            # half see-through (no blur: niri blur on th
 border = false                      # outline around OSD popup cards; set false for a borderless look
 border_color = "outline"            # outline color: theme color role (e.g. "primary") or hex (e.g. "#a8b185")
 border_width = 1                    # outline stroke width in px; raise for a thicker outline
-follow_focused_output = false       # show a new OSD on the focused output; keep it pinned until it disappears
+follow_focused_output = true        # OSD only on the focused output (was false: every monitor showed the same popup, so a per-monitor Shift+brightness change looked like it hit both)
 offset_x = 12                       # DEMO: 12 = the shared gap
 offset_y = 96                       # absolute vertical margin from the screen edge; clears the dock (48px icons + padding + 12 gap)
 # monitors = ["DP-1"]               # connector names; omit or leave empty for all monitors
@@ -354,6 +354,7 @@ sound_theme = "freedesktop"
 
 [brightness]
 enable_ddcutil = true
+sync_all_monitors = false          # sliders stay per-monitor; the niri brightness keys pass "all" to keep both in step (Shift+key = focused only)
 # ignore_mmids = []                 # skip these monitors from ddcutil; run: ddcutil --verbose detect
 # minimum_brightness = 0.0          # never let brightness drop below this floor (0.0 to 1.0)
 
@@ -427,10 +428,10 @@ thickness          = 34
 background_opacity = 0.92 # DEMO: Breeze-like translucency with blur behind
 compositor_blur    = true          # false stops compositor blur for this bar
 radius             = 12
-margin_ends        = 12 # DEMO: full width minus the shared gap, like a floating Plasma panel (was 180)
+margin_ends        = 4 # body lands at x=8, flush with niri gaps 8: noctalia insets the body ~2x this (measured: 4 -> 8px, 3 -> 6px)
 border             = "outline" # DEMO: thin Breeze-style outline
 border_width       = 1.0
-margin_edge        = 12 # DEMO: shared gap (was 10)
+margin_edge        = 0 # attached to the top edge; niri gaps 8 is the bar-to-window space
 padding            = 14
 widget_spacing     = 6
 scale              = 1.0

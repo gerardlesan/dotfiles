@@ -518,6 +518,10 @@ if [ "$OS" = "Linux" ]; then
   }
   link_dir "niri/niri" "$CONFIG_HOME/niri" "niri"
   link_dir "niri/noctalia" "$CONFIG_HOME/noctalia" "noctalia"
+  # External monitors are dimmed over DDC/CI: without ddcutil noctalia can only
+  # reach the laptop backlight. The package ships the udev rule (i2c access) and
+  # loads i2c-dev, so nothing else is needed.
+  have ddcutil || warn "ddcutil missing — external monitor brightness will not work. Arch: sudo pacman -S ddcutil"
   # Default apps under niri: PDFs in Zen, Dolphin for folders, "reveal file"
   # and Open/Save dialogs. Each file's header says why. link_dir works on
   # single files too.
